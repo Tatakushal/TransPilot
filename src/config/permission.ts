@@ -1,4 +1,4 @@
-import { UserRole } from "@/types/roles";
+import type { UserRole } from "@/types/roles";
 
 export const permissions: Record<UserRole, string[]> = {
   ADMIN: [

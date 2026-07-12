@@ -5,11 +5,13 @@ import DriverTable from "@/components/drivers/DriverTable";
 export default function DriversPage() {
   return (
     <AppShell>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-semibold">Driver Management</h1>
+      <div className="space-y-8">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+            Driver Management
+          </h1>
 
-          <p className="text-gray-500 mt-2">
+          <p className="text-base text-slate-500">
             Manage driver profiles and safety compliance.
           </p>
         </div>
