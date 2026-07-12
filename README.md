@@ -1,5 +1,16 @@
+<<<<<<< HEAD
 # TransitOps
 
+=======
+<<<<<<< HEAD
+# TransPilot
+
+AI-powered Fleet Management Platform built with React, TypeScript, Vite, Tailwind CSS, and FastAPI.
+=======
+<<<<<<< HEAD
+# TransitOps
+
+>>>>>>> 410bf70 (Remove Python cache files)
 AI-powered Fleet Management Platform
 
 ## Tech Stack
@@ -86,3 +97,7 @@ export default defineConfig([
 
 ```
 >>>>>>> 702a5bc (Initial TransitOps project)
+<<<<<<< HEAD
+=======
+>>>>>>> 9ebf7ac (Initial TransitOps project)
+>>>>>>> 410bf70 (Remove Python cache files)
