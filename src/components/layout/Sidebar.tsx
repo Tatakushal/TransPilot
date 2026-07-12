@@ -146,11 +146,11 @@ export default function Sidebar() {
       <div className="border-b border-slate-100 px-7 py-7">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 font-bold text-white">
-            TO
+            <img src="logo.png" alt="TransPilot"></img>
           </div>
 
           <div>
-            <h1 className="text-lg font-bold tracking-tight">TransitOps</h1>
+            <h1 className="text-lg font-bold tracking-tight">TransPilot</h1>
 
             <p className="text-xs text-slate-500">Fleet Operations</p>
           </div>
@@ -181,10 +181,9 @@ export default function Sidebar() {
                     key={item.label}
                     to={item.path}
                     className={({ isActive }) =>
-                      `mb-1 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                        isActive
-                          ? "bg-indigo-50 text-indigo-600 shadow-sm"
-                          : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-600"
+                      `mb-1 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${isActive
+                        ? "bg-indigo-50 text-indigo-600 shadow-sm"
+                        : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-600"
                       }`
                     }
                   >
