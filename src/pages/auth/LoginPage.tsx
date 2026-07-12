@@ -68,10 +68,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-10 shadow-xl">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-2xl font-bold text-white">
-            TO
+            <img src="logo.png" alt="TransPilot"></img>
           </div>
 
-          <h1 className="text-3xl font-bold">TransitOps</h1>
+          <h1 className="text-3xl font-bold">TransPilot</h1>
 
           <p className="mt-2 text-slate-500">AI Fleet Management Platform</p>
         </div>
@@ -93,11 +93,10 @@ export default function LoginPage() {
                 }));
               }}
               onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-              className={`w-full rounded-xl border px-4 py-3 outline-none transition ${
-                errors.email
-                  ? "border-red-500"
-                  : "border-slate-200 focus:border-indigo-500"
-              }`}
+              className={`w-full rounded-xl border px-4 py-3 outline-none transition ${errors.email
+                ? "border-red-500"
+                : "border-slate-200 focus:border-indigo-500"
+                }`}
             />
 
             {errors.email && (
@@ -121,11 +120,10 @@ export default function LoginPage() {
                 }));
               }}
               onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-              className={`w-full rounded-xl border px-4 py-3 pr-12 outline-none transition ${
-                errors.password
-                  ? "border-red-500"
-                  : "border-slate-200 focus:border-indigo-500"
-              }`}
+              className={`w-full rounded-xl border px-4 py-3 pr-12 outline-none transition ${errors.password
+                ? "border-red-500"
+                : "border-slate-200 focus:border-indigo-500"
+                }`}
             />
 
             <button
