@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # TransitOps
 
 AI-powered Fleet Management Platform
