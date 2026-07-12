@@ -1,103 +1,223 @@
-<<<<<<< HEAD
-# TransitOps
+# 🚛 TransPilot
 
-=======
-<<<<<<< HEAD
-# TransPilot
+An AI-powered Fleet Management System built using **React + TypeScript + Vite** for the frontend and **FastAPI** for the backend.
 
-AI-powered Fleet Management Platform built with React, TypeScript, Vite, Tailwind CSS, and FastAPI.
-=======
-<<<<<<< HEAD
-# TransitOps
+---
 
->>>>>>> 410bf70 (Remove Python cache files)
-AI-powered Fleet Management Platform
+# Prerequisites
 
-## Tech Stack
+Make sure the following are installed:
 
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- FastAPI
-=======
-# React + TypeScript + Vite
+- Node.js (v18 or later)
+- Python 3.11+
+- Git
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+---
 
-Currently, two official plugins are available:
+# Clone the Repository
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+git clone https://github.com/Tatakushal/TransPilot.git
+cd TransPilot
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+# Frontend Setup
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Open a terminal in the project root.
+
+## Install dependencies
+
+```bash
+npm install
+```
+
+## Start the frontend
+
+```bash
+npm run dev
+```
+
+The frontend will start at:
 
 ```
->>>>>>> 702a5bc (Initial TransitOps project)
-<<<<<<< HEAD
-=======
->>>>>>> 9ebf7ac (Initial TransitOps project)
->>>>>>> 410bf70 (Remove Python cache files)
+http://localhost:5173
+```
+
+---
+
+# Backend Setup
+
+Open **another terminal**.
+
+Navigate to the backend folder.
+
+```bash
+cd backend
+```
+
+## Create a Virtual Environment (Recommended)
+
+### Windows
+
+```bash
+python -m venv .venv
+```
+
+Activate it:
+
+```bash
+.venv\Scripts\activate
+```
+
+### macOS / Linux
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+---
+
+## Upgrade pip
+
+```bash
+python -m pip install --upgrade pip
+```
+
+---
+
+## Install Backend Dependencies
+
+```bash
+pip install fastapi uvicorn sqlalchemy pydantic python-multipart
+```
+
+---
+
+## Run the Backend
+
+```bash
+python -m uvicorn main:app --reload
+```
+
+The backend will start at:
+
+```
+http://127.0.0.1:8000
+```
+
+Swagger API Documentation:
+
+```
+http://127.0.0.1:8000/docs
+```
+
+---
+
+# Running the Project
+
+### Terminal 1 (Backend)
+
+```bash
+cd backend
+python -m uvicorn main:app --reload
+```
+
+### Terminal 2 (Frontend)
+
+```bash
+npm run dev
+```
+
+Open your browser:
+
+```
+http://localhost:5173
+```
+
+---
+
+# Project Structure
+
+```
+TransPilot
+│
+├── backend/
+│   ├── main.py
+│   ├── ...
+│
+├── public/
+│
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── services/
+│   ├── router/
+│   └── ...
+│
+├── package.json
+├── vite.config.ts
+└── README.md
+```
+
+---
+
+# Troubleshooting
+
+### Backend won't start
+
+Make sure you are inside the backend folder:
+
+```bash
+cd backend
+```
+
+If dependencies are missing:
+
+```bash
+pip install fastapi uvicorn sqlalchemy pydantic python-multipart
+```
+
+---
+
+### Frontend won't start
+
+Install dependencies again:
+
+```bash
+npm install
+```
+
+Then run:
+
+```bash
+npm run dev
+```
+
+---
+
+### API Connection Error
+
+Ensure the backend is running before starting the frontend.
+
+Backend:
+
+```
+http://127.0.0.1:8000
+```
+
+Frontend:
+
+```
+http://localhost:5173
+```
+
+---
+
+# Team
+
+**TransPilot**
+
+Developed as part of a Hackathon Project.
