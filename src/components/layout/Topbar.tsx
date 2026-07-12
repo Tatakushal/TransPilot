@@ -1,36 +1,40 @@
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, Settings, UserCircle2 } from "lucide-react";
 
 export default function Topbar() {
   return (
-    <header className="h-[88px] bg-white border-b border-gray-200 px-10 flex items-center justify-between gap-10 flex-shrink-0">
-      <div className="min-w-0">
-        <h1 className="text-4xl  font-bold tracking-tight whitespace-nowrap">
-          Operations Center
-        </h1>
+    <header className="flex h-20 items-center justify-between border-b border-slate-200 bg-white px-8">
+      <div>
+        <h1 className="text-2xl font-bold">Good Afternoon, Kushal 👋</h1>
 
-        <p className="text-sm text-gray-500 mt-2">
-          Monitor your fleet, drivers and active operations.
+        <p className="mt-1 text-sm text-slate-500">
+          Your fleet is operating efficiently today.
         </p>
       </div>
 
-      <div className="flex items-center gap-4 flex-shrink-0">
+      <div className="flex items-center gap-5">
         <div className="relative">
           <Search
-            size={16}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+            size={18}
+            className="absolute left-4 top-3.5 text-slate-400"
           />
 
           <input
             placeholder="Search..."
-            className="pl-10 w-80 h-11 rounded-xl border border-gray-200 bg-gray-50 outline-none px-4"
+            className="w-72 rounded-xl border border-slate-200 py-3 pl-11 pr-4 outline-none focus:border-indigo-500"
           />
         </div>
 
-        <button className="w-11 h-11 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50">
-          <Bell size={18} />
-        </button>
+        <div className="relative cursor-pointer">
+          <Bell size={22} />
 
-        <div className="w-11 h-11 rounded-full bg-indigo-600" />
+          <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+            3
+          </span>
+        </div>
+
+        <Settings size={22} className="cursor-pointer" />
+
+        <UserCircle2 size={34} className="cursor-pointer text-indigo-600" />
       </div>
     </header>
   );

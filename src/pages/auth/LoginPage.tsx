@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { UserRole } from "@/context/AuthContext";
 
@@ -12,6 +13,10 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+
   const [errors, setErrors] = useState({
     email: "",
     password: "",
@@ -21,48 +26,48 @@ export default function LoginPage() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  function validate() {
-    const newErrors = {
-      email: "",
-      password: "",
-    };
+  function validateEmail(value: string) {
+    if (!value.trim()) return "Email is required";
 
-    let valid = true;
+    const regex = /\S+@\S+\.\S+/;
 
-    if (!email.trim()) {
-      newErrors.email = "Email is required";
-      valid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Enter a valid email";
-      valid = false;
-    }
+    if (!regex.test(value)) return "Enter a valid email";
 
-    if (!password.trim()) {
-      newErrors.password = "Password is required";
-      valid = false;
-    } else if (password.length < 6) {
-      newErrors.password = "Minimum 6 characters";
-      valid = false;
-    }
-
-    setErrors(newErrors);
-
-    return valid;
+    return "";
   }
 
-  function handleLogin() {
-    if (!validate()) return;
+  function validatePassword(value: string) {
+    if (!value.trim()) return "Password is required";
 
-    login(role);
+    if (value.length < 6) return "Minimum 6 characters";
 
-    navigate("/dashboard");
+    return "";
+  }
+
+  async function handleLogin() {
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+
+    setErrors({
+      email: emailError,
+      password: passwordError,
+    });
+
+    if (emailError || passwordError) return;
+
+    setLoading(true);
+
+    setTimeout(() => {
+      login(role);
+      navigate("/dashboard");
+    }, 700);
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 px-6">
       <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-10 shadow-xl">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-2xl font-bold text-white">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-2xl font-bold text-white">
             TO
           </div>
 
@@ -77,7 +82,17 @@ export default function LoginPage() {
               type="email"
               placeholder="Email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                setEmail(value);
+
+                setErrors((prev) => ({
+                  ...prev,
+                  email: validateEmail(value),
+                }));
+              }}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               className={`w-full rounded-xl border px-4 py-3 outline-none transition ${
                 errors.email
                   ? "border-red-500"
@@ -90,18 +105,36 @@ export default function LoginPage() {
             )}
           </div>
 
-          <div>
+          <div className="relative">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`w-full rounded-xl border px-4 py-3 outline-none transition ${
+              onChange={(e) => {
+                const value = e.target.value;
+
+                setPassword(value);
+
+                setErrors((prev) => ({
+                  ...prev,
+                  password: validatePassword(value),
+                }));
+              }}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+              className={`w-full rounded-xl border px-4 py-3 pr-12 outline-none transition ${
                 errors.password
                   ? "border-red-500"
                   : "border-slate-200 focus:border-indigo-500"
               }`}
             />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-3 text-slate-500"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
 
             {errors.password && (
               <p className="mt-1 text-sm text-red-500">{errors.password}</p>
@@ -122,9 +155,10 @@ export default function LoginPage() {
 
           <button
             onClick={handleLogin}
-            className="w-full rounded-xl bg-indigo-600 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+            disabled={loading}
+            className="w-full rounded-xl bg-indigo-600 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400"
           >
-            Sign In
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </div>
       </div>

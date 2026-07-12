@@ -5,21 +5,24 @@ import RecentTrips from "@/components/dashboard/RecentTrips";
 import MaintenanceAlerts from "@/components/dashboard/MaintanenceAlerts";
 import DriverAlerts from "@/components/dashboard/DriverAlerts";
 import FleetStatus from "@/components/dashboard/FleetStatus";
+import FleetChart from "@/components/dashboard/FleetChart";
+import AIRecommendation from "@/components/dashboard/AIRecommendation";
+
 import { useEffect, useState } from "react";
 import { getDashboardKPIs } from "@/services/dashboard";
 import { Truck, Route, Users, BarChart3 } from "lucide-react";
 
-export default function DashboardPage() {
-  interface DashboardKPIs {
-    active_vehicles: number;
-    available_vehicles: number;
-    vehicles_in_maintenance: number;
-    active_trips: number;
-    pending_trips: number;
-    drivers_on_duty: number;
-    fleet_utilization_percent: number;
-  }
+interface DashboardKPIs {
+  active_vehicles: number;
+  available_vehicles: number;
+  vehicles_in_maintenance: number;
+  active_trips: number;
+  pending_trips: number;
+  drivers_on_duty: number;
+  fleet_utilization_percent: number;
+}
 
+export default function DashboardPage() {
   const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
 
   useEffect(() => {
@@ -28,12 +31,13 @@ export default function DashboardPage() {
         const data = await getDashboardKPIs();
         setKpis(data);
       } catch (error) {
-        console.error("Error fetching dashboard KPIs:", error);
+        console.error(error);
       }
     };
 
     fetchKPIs();
   }, []);
+
   if (!kpis) {
     return (
       <AppShell>
@@ -41,10 +45,12 @@ export default function DashboardPage() {
       </AppShell>
     );
   }
+
   return (
     <AppShell>
       <div className="space-y-8">
-        {/* KPI Cards */}
+        <AIRecommendation />
+
         <div className="grid gap-7 lg:grid-cols-4 md:grid-cols-2 grid-cols-1">
           <KpiCard
             title="Active Vehicles"
@@ -75,21 +81,20 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Fleet + Vehicle Status */}
         <div className="grid grid-cols-12 gap-8">
-          <div className="col-span-9">
-            <FleetStatus />
+          <div className="col-span-8">
+            <FleetChart />
           </div>
 
-          <div className="col-span-3">
+          <div className="col-span-4">
             <VehicleStatus />
           </div>
         </div>
 
-        {/* Recent Trips */}
+        <FleetStatus />
+
         <RecentTrips />
 
-        {/* Bottom Cards */}
         <div className="grid grid-cols-2 gap-7">
           <MaintenanceAlerts />
 
