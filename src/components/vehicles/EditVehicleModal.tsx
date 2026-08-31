@@ -37,7 +37,12 @@ export default function EditVehicleModal({ vehicle, onClose, onSuccess }: Props)
     const capacity = Number(form.capacity);
     const odometer = Number(form.odometer);
     const acquisitionCost = Number(form.acquisitionCost);
+    const registration = vehicle.registration?.trim();
 
+    if (!registration) {
+      setError("Vehicle registration is missing.");
+      return;
+    }
     if (!form.model.trim() || !form.type.trim()) {
       setError("Model and type are required.");
       return;
@@ -49,7 +54,7 @@ export default function EditVehicleModal({ vehicle, onClose, onSuccess }: Props)
 
     try {
       setSaving(true);
-      await updateVehicle({ ...vehicle, model: form.model, type: form.type, capacity: `${capacity} kg`, odometer, acquisitionCost, status: form.status });
+      await updateVehicle({ ...vehicle, registration, model: form.model, type: form.type, capacity: `${capacity} kg`, odometer, acquisitionCost, status: form.status });
       onSuccess();
       onClose();
     } catch (err) {
@@ -66,7 +71,6 @@ export default function EditVehicleModal({ vehicle, onClose, onSuccess }: Props)
           <h2 className="text-2xl font-bold">Edit Vehicle</h2>
           <p className="mt-1 text-sm text-slate-500">{vehicle.registration}</p>
         </div>
-
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <input placeholder="Model *" className="rounded-xl border p-3" value={form.model} onChange={(e) => update("model", e.target.value)} />
           <input placeholder="Type *" className="rounded-xl border p-3" value={form.type} onChange={(e) => update("type", e.target.value)} />
@@ -74,15 +78,10 @@ export default function EditVehicleModal({ vehicle, onClose, onSuccess }: Props)
           <input type="number" min="0" placeholder="Odometer *" className="rounded-xl border p-3" value={form.odometer} onChange={(e) => update("odometer", e.target.value)} />
           <input type="number" min="0" placeholder="Acquisition cost *" className="rounded-xl border p-3" value={form.acquisitionCost} onChange={(e) => update("acquisitionCost", e.target.value)} />
           <select className="rounded-xl border p-3" value={form.status} onChange={(e) => update("status", e.target.value)}>
-            <option>Available</option>
-            <option>On Trip</option>
-            <option>In Shop</option>
-            <option>Retired</option>
+            <option>Available</option><option>On Trip</option><option>In Shop</option><option>Retired</option>
           </select>
         </div>
-
         {error && <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-600">{error}</p>}
-
         <div className="mt-8 flex justify-end gap-3">
           <button onClick={onClose} disabled={saving} className="rounded-xl border px-5 py-3 disabled:opacity-50">Cancel</button>
           <button onClick={handleSubmit} disabled={saving} className="rounded-xl bg-indigo-600 px-5 py-3 text-white disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Saving..." : "Save Changes"}</button>
