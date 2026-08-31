@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /vehicles
+Disallow: /drivers
+Disallow: /trips
+Disallow: /fuel
+Disallow: /maintenance
+Disallow: /reports
+Disallow: /settings
+Sitemap: /sitemap.xml
