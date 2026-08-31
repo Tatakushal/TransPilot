@@ -7,9 +7,9 @@ import type { UserRole } from "@/context/AuthContext";
 export default function LoginPage() {
   const { login, user, isAuthReady } = useAuth();
   const navigate = useNavigate();
-  const [role, setRole] = useState<UserRole>("fleet-manager");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<UserRole>("fleet-manager");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -28,17 +28,20 @@ export default function LoginPage() {
     if (value.length < 6) return "Minimum 6 characters";
     return "";
   }
-  function handleLogin() {
-    const emailError = validateEmail(email);
-    const passwordError = validatePassword(password);
-    setErrors({ email: emailError, password: passwordError });
+  async function handleLogin() {
+    const nextErrors = { email: validateEmail(email), password: validatePassword(password) };
+    setErrors(nextErrors);
     setSubmitError("");
-    if (emailError || passwordError) return;
+    if (nextErrors.email || nextErrors.password) return;
     setLoading(true);
-    window.setTimeout(() => {
-      try { login(role); navigate("/dashboard", { replace: true }); }
-      catch { setSubmitError("Unable to sign in. Please try again."); setLoading(false); }
-    }, 400);
+    try {
+      await login(email.trim(), password);
+      navigate("/dashboard", { replace: true });
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Unable to sign in. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -53,7 +56,6 @@ export default function LoginPage() {
           </div>
           <div className="relative grid grid-cols-3 gap-3">{[[Truck,"Fleet","Visibility"],[ShieldCheck,"Safety","Compliance"],[LockKeyhole,"Secure","Access"]].map(([Icon,title,text]) => { const I = Icon as typeof Truck; return <div key={title as string} className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10 backdrop-blur-sm"><I size={19}/><p className="mt-3 text-sm font-semibold">{title as string}</p><p className="text-xs text-indigo-100">{text as string}</p></div>; })}</div>
         </section>
-
         <section className="flex items-center justify-center px-6 py-10 sm:px-12 lg:px-14">
           <div className="w-full max-w-md">
             <div className="mb-9 flex items-center gap-3 lg:hidden"><div className="flex h-11 w-11 rounded-xl bg-indigo-600 p-2"><img src="/logo.png" alt="TransPilot" className="h-full w-full object-contain" /></div><div><p className="font-bold">TransPilot</p><p className="text-xs text-slate-500">Fleet Operations</p></div></div>
@@ -62,7 +64,7 @@ export default function LoginPage() {
               <div><label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-700">Email address</label><div className="relative"><Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"/><input id="email" type="email" autoComplete="email" placeholder="you@company.com" value={email} onChange={(e)=>{setEmail(e.target.value);setSubmitError("");setErrors(p=>({...p,email:validateEmail(e.target.value)}));}} onKeyDown={(e)=>e.key==="Enter"&&handleLogin()} className={`h-12 w-full rounded-xl border bg-slate-50 pl-11 pr-4 text-sm outline-none transition focus:bg-white focus:ring-4 focus:ring-indigo-100 ${errors.email?"border-red-400":"border-slate-200 focus:border-indigo-500"}`}/></div>{errors.email&&<p className="mt-1.5 text-xs font-medium text-red-500">{errors.email}</p>}</div>
               <div><label htmlFor="password" className="mb-2 block text-sm font-semibold text-slate-700">Password</label><div className="relative"><LockKeyhole size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"/><input id="password" type={showPassword?"text":"password"} autoComplete="current-password" placeholder="Enter your password" value={password} onChange={(e)=>{setPassword(e.target.value);setSubmitError("");setErrors(p=>({...p,password:validatePassword(e.target.value)}));}} onKeyDown={(e)=>e.key==="Enter"&&handleLogin()} className={`h-12 w-full rounded-xl border bg-slate-50 pl-11 pr-12 text-sm outline-none transition focus:bg-white focus:ring-4 focus:ring-indigo-100 ${errors.password?"border-red-400":"border-slate-200 focus:border-indigo-500"}`}/><button type="button" aria-label={showPassword?"Hide password":"Show password"} onClick={()=>setShowPassword(v=>!v)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700">{showPassword?<EyeOff size={18}/>:<Eye size={18}/>}</button></div>{errors.password&&<p className="mt-1.5 text-xs font-medium text-red-500">{errors.password}</p>}</div>
               <div><label htmlFor="role" className="mb-2 block text-sm font-semibold text-slate-700">Workspace role</label><select id="role" value={role} onChange={e=>setRole(e.target.value as UserRole)} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"><option value="admin">Admin</option><option value="fleet-manager">Fleet Manager</option><option value="dispatcher">Dispatcher</option><option value="safety-officer">Safety Officer</option><option value="financial-analyst">Financial Analyst</option></select></div>
-              {submitError&&<div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">{submitError}</div>}
+              {submitError&&<div role="alert" className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">{submitError}</div>}
               <button type="button" onClick={handleLogin} disabled={loading} className="h-12 w-full rounded-xl bg-indigo-600 font-semibold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">{loading?"Signing you in...":"Sign in to dashboard"}</button>
             </div>
             <div className="mt-8 flex items-center justify-center gap-2 text-xs text-slate-400"><LockKeyhole size={13}/> Secure fleet operations workspace</div>
