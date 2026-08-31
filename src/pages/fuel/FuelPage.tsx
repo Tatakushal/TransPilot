@@ -1,90 +1,19 @@
+import { useMemo, useState } from "react";
 import AppShell from "@/components/layout/AppShell";
+import { Fuel, Plus, Search, TrendingUp } from "lucide-react";
 
-const fuelLogs = [
-  {
-    vehicle: "Volvo FH16",
-    litres: 120,
-    cost: "₹12,500",
-    date: "12 Jul 2026",
-  },
-  {
-    vehicle: "Tata Prima",
-    litres: 90,
-    cost: "₹9,450",
-    date: "11 Jul 2026",
-  },
+interface FuelLog { vehicle: string; litres: number; cost: number; date: string; }
+const initialLogs: FuelLog[] = [
+ { vehicle: "Volvo FH16", litres: 120, cost: 12500, date: "12 Jul 2026" },
+ { vehicle: "Tata Prima", litres: 90, cost: 9450, date: "11 Jul 2026" },
 ];
-
 export default function FuelPage() {
-  return (
-    <AppShell>
-      <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-              Fuel & Expenses
-            </h1>
-
-            <p className="mt-2 text-slate-500">
-              Monitor fuel consumption and operational costs.
-            </p>
-          </div>
-
-          <button className="rounded-xl bg-indigo-600 px-5 py-3 text-white">
-            + Add Fuel Log
-          </button>
-        </div>
-
-        <div className="grid grid-cols-3 gap-6">
-          <div className="rounded-2xl border bg-white p-6">
-            <p className="text-sm text-slate-500">Total Fuel Cost</p>
-
-            <h2 className="mt-3 text-3xl font-bold">₹2.45L</h2>
-          </div>
-
-          <div className="rounded-2xl border bg-white p-6">
-            <p className="text-sm text-slate-500">Fuel Consumed</p>
-
-            <h2 className="mt-3 text-3xl font-bold">5,860 L</h2>
-          </div>
-
-          <div className="rounded-2xl border bg-white p-6">
-            <p className="text-sm text-slate-500">Avg Cost / Litre</p>
-
-            <h2 className="mt-3 text-3xl font-bold">₹104</h2>
-          </div>
-        </div>
-
-        <div className="overflow-hidden rounded-3xl border bg-white">
-          <table className="w-full">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-6 py-4 text-left">Vehicle</th>
-
-                <th className="px-6 py-4 text-left">Litres</th>
-
-                <th className="px-6 py-4 text-left">Cost</th>
-
-                <th className="px-6 py-4 text-left">Date</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {fuelLogs.map((log) => (
-                <tr key={log.vehicle} className="border-t">
-                  <td className="px-6 py-5">{log.vehicle}</td>
-
-                  <td>{log.litres}</td>
-
-                  <td>{log.cost}</td>
-
-                  <td>{log.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </AppShell>
-  );
+ const [logs, setLogs] = useState(initialLogs); const [search, setSearch] = useState(""); const [open, setOpen] = useState(false); const [vehicle,setVehicle]=useState(""); const [litres,setLitres]=useState(""); const [cost,setCost]=useState("");
+ const filtered=useMemo(()=>logs.filter(x=>x.vehicle.toLowerCase().includes(search.toLowerCase())),[logs,search]);
+ const totalLitres=logs.reduce((a,b)=>a+b.litres,0), totalCost=logs.reduce((a,b)=>a+b.cost,0); const avg=totalLitres?totalCost/totalLitres:0;
+ function add(){ if(!vehicle.trim()||!litres||!cost)return; setLogs([{vehicle,litres:Number(litres),cost:Number(cost),date:new Date().toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})},...logs]); setVehicle("");setLitres("");setCost("");setOpen(false); }
+ return <AppShell><div className="space-y-7"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-semibold text-indigo-600">Cost intelligence</p><h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">Fuel & Expenses</h1><p className="mt-2 text-sm text-slate-500">Track consumption, fuel spend and operating efficiency.</p></div><button onClick={()=>setOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-100 hover:bg-indigo-700"><Plus size={18}/> Add Fuel Log</button></div>
+ <div className="grid gap-5 md:grid-cols-3">{[["Total Fuel Cost",`₹${totalCost.toLocaleString("en-IN")}`,TrendingUp],["Fuel Consumed",`${totalLitres.toLocaleString()} L`,Fuel],["Avg Cost / Litre",`₹${avg.toFixed(0)}`,TrendingUp]].map(([label,value,Icon])=><div key={label as string} className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm"><div className="flex items-center justify-between"><p className="text-sm font-medium text-slate-500">{label as string}</p><div className="rounded-xl bg-indigo-50 p-2.5 text-indigo-600"><Icon size={18}/></div></div><h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900">{value as string}</h2></div>)}</div>
+ <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm"><div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between"><h2 className="font-bold text-slate-900">Fuel records</h2><div className="relative w-full sm:w-72"><Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search vehicle..." className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm outline-none focus:border-indigo-500 focus:bg-white"/></div></div><div className="overflow-x-auto"><table className="w-full min-w-[600px]"><thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-400"><tr><th className="px-6 py-4 text-left">Vehicle</th><th className="px-6 py-4 text-left">Litres</th><th className="px-6 py-4 text-left">Cost</th><th className="px-6 py-4 text-left">Date</th></tr></thead><tbody>{filtered.map((log,i)=><tr key={`${log.vehicle}-${log.date}-${i}`} className="border-t border-slate-100 hover:bg-slate-50/70"><td className="px-6 py-5 font-medium text-slate-700">{log.vehicle}</td><td className="px-6 py-5 text-slate-600">{log.litres} L</td><td className="px-6 py-5 font-semibold text-slate-700">₹{log.cost.toLocaleString("en-IN")}</td><td className="px-6 py-5 text-slate-500">{log.date}</td></tr>)}</tbody></table>{!filtered.length&&<div className="p-12 text-center text-sm text-slate-500">No fuel records match your search.</div>}</div></div>
+ {open&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm"><div className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl"><h2 className="text-xl font-bold text-slate-900">Add fuel log</h2><p className="mt-1 text-sm text-slate-500">Record a new fuel transaction.</p><div className="mt-6 space-y-4"><input value={vehicle} onChange={e=>setVehicle(e.target.value)} placeholder="Vehicle" className="h-11 w-full rounded-xl border border-slate-200 px-4 text-sm outline-none focus:border-indigo-500"/><input type="number" min="0" value={litres} onChange={e=>setLitres(e.target.value)} placeholder="Litres" className="h-11 w-full rounded-xl border border-slate-200 px-4 text-sm outline-none focus:border-indigo-500"/><input type="number" min="0" value={cost} onChange={e=>setCost(e.target.value)} placeholder="Cost (₹)" className="h-11 w-full rounded-xl border border-slate-200 px-4 text-sm outline-none focus:border-indigo-500"/><div className="flex gap-3 pt-2"><button onClick={()=>setOpen(false)} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-semibold">Cancel</button><button onClick={add} className="flex-1 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white">Save log</button></div></div></div></div>}</div></AppShell>;
 }
