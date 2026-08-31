@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { Vehicle } from "@/types/vehicles";
 
-const API = "http://127.0.0.1:8000/api";
+const API = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
 interface VehicleResponse {
   registration_number: string;
@@ -10,19 +10,19 @@ interface VehicleResponse {
   max_load_capacity: number;
   odometer: number;
   acquisition_cost: number;
-  status: string;
+  status: Vehicle["status"];
 }
 
 function mapVehicle(v: VehicleResponse): Vehicle {
   return {
-    id: v.registration_number as unknown as number,
+    id: Number.NaN,
     registration: v.registration_number,
     model: v.vehicle_name_model,
     type: v.type,
     capacity: `${v.max_load_capacity.toLocaleString()} kg`,
     odometer: v.odometer,
     acquisitionCost: v.acquisition_cost,
-    status: v.status as Vehicle["status"],
+    status: v.status,
   };
 }
 
@@ -31,14 +31,24 @@ export async function getVehicles(): Promise<Vehicle[]> {
   return response.data.map(mapVehicle);
 }
 
-export async function addVehicle(vehicle: Vehicle) {
-  return axios.post(`${API}/vehicles`, vehicle);
+export interface VehiclePayload {
+  registration_number: string;
+  vehicle_name_model: string;
+  type: string;
+  max_load_capacity: number;
+  odometer: number;
+  acquisition_cost: number;
+  status: Vehicle["status"];
 }
 
-export async function updateVehicle(vehicle: Vehicle) {
-  return axios.put(`${API}/vehicles/${vehicle.registration}`, vehicle);
+export async function addVehicle(vehicle: VehiclePayload) {
+  return axios.post<VehicleResponse>(`${API}/vehicles`, vehicle);
+}
+
+export async function updateVehicle(registration: string, vehicle: Omit<VehiclePayload, "registration_number">) {
+  return axios.put<VehicleResponse>(`${API}/vehicles/${encodeURIComponent(registration)}`, vehicle);
 }
 
 export async function deleteVehicle(registration: string) {
-  return axios.delete(`${API}/vehicles/${registration}`);
+  return axios.delete(`${API}/vehicles/${encodeURIComponent(registration)}`);
 }
