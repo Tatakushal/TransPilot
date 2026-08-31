@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Vehicle } from "@/types/vehicles";
+import type { Vehicle, VehicleStatus } from "@/types/vehicles";
 
 const API = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
@@ -10,25 +10,7 @@ interface VehicleResponse {
   max_load_capacity: number;
   odometer: number;
   acquisition_cost: number;
-  status: Vehicle["status"];
-}
-
-function mapVehicle(v: VehicleResponse): Vehicle {
-  return {
-    id: Number.NaN,
-    registration: v.registration_number,
-    model: v.vehicle_name_model,
-    type: v.type,
-    capacity: `${v.max_load_capacity.toLocaleString()} kg`,
-    odometer: v.odometer,
-    acquisitionCost: v.acquisition_cost,
-    status: v.status,
-  };
-}
-
-export async function getVehicles(): Promise<Vehicle[]> {
-  const response = await axios.get<VehicleResponse[]>(`${API}/vehicles`);
-  return response.data.map(mapVehicle);
+  status: string;
 }
 
 export interface VehiclePayload {
@@ -38,15 +20,52 @@ export interface VehiclePayload {
   max_load_capacity: number;
   odometer: number;
   acquisition_cost: number;
-  status: Vehicle["status"];
+  status: VehicleStatus;
 }
 
-export async function addVehicle(vehicle: VehiclePayload) {
-  return axios.post<VehicleResponse>(`${API}/vehicles`, vehicle);
+function mapVehicle(v: VehicleResponse): Vehicle {
+  return {
+    id: v.registration_number as unknown as number,
+    registration: v.registration_number,
+    model: v.vehicle_name_model,
+    type: v.type,
+    capacity: `${v.max_load_capacity.toLocaleString()} kg`,
+    odometer: v.odometer,
+    acquisitionCost: v.acquisition_cost,
+    status: v.status as VehicleStatus,
+  };
 }
 
-export async function updateVehicle(registration: string, vehicle: Omit<VehiclePayload, "registration_number">) {
-  return axios.put<VehicleResponse>(`${API}/vehicles/${encodeURIComponent(registration)}`, vehicle);
+function toPayload(vehicle: Vehicle): VehiclePayload {
+  return {
+    registration_number: vehicle.registration.trim().toUpperCase(),
+    vehicle_name_model: vehicle.model.trim(),
+    type: vehicle.type.trim(),
+    max_load_capacity: Number(String(vehicle.capacity).replace(/[^0-9.]/g, "")),
+    odometer: Number(vehicle.odometer),
+    acquisition_cost: Number(vehicle.acquisitionCost),
+    status: vehicle.status,
+  };
+}
+
+export async function getVehicles(): Promise<Vehicle[]> {
+  const response = await axios.get<VehicleResponse[]>(`${API}/vehicles`);
+  return response.data.map(mapVehicle);
+}
+
+export async function addVehicle(vehicle: Vehicle) {
+  return axios.post(`${API}/vehicles`, toPayload(vehicle));
+}
+
+export async function updateVehicle(vehicle: Vehicle) {
+  return axios.put(`${API}/vehicles/${encodeURIComponent(vehicle.registration)}`, {
+    vehicle_name_model: vehicle.model.trim(),
+    type: vehicle.type.trim(),
+    max_load_capacity: Number(String(vehicle.capacity).replace(/[^0-9.]/g, "")),
+    odometer: Number(vehicle.odometer),
+    acquisition_cost: Number(vehicle.acquisitionCost),
+    status: vehicle.status,
+  });
 }
 
 export async function deleteVehicle(registration: string) {
