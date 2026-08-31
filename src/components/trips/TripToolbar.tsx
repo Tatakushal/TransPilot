@@ -1,27 +1,5 @@
-import { Plus } from "lucide-react";
-
-interface Props {
-  onCreateTrip?: () => void;
-}
-
+import { Plus, Search, SlidersHorizontal } from "lucide-react";
+interface Props { onCreateTrip?: () => void; }
 export default function TripToolbar({ onCreateTrip }: Props) {
-  return (
-    <div className="mb-8 flex items-center justify-between">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Trip Management</h1>
-
-        <p className="mt-2 text-slate-500">
-          Dispatch, monitor and manage active trips.
-        </p>
-      </div>
-
-      <button
-        onClick={onCreateTrip}
-        className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-medium text-white shadow-sm transition hover:bg-indigo-700"
-      >
-        <Plus size={18} />
-        Create Trip
-      </button>
-    </div>
-  );
+ return <div className="mb-7 flex flex-col gap-5 rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">Operations</p><h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">Trip Management</h1><p className="mt-1 text-sm text-slate-500">Dispatch, monitor and manage every journey.</p></div><div className="flex gap-3"><button type="button" className="hidden items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 md:flex"><Search size={17}/> Search</button><button type="button" className="hidden items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 md:flex"><SlidersHorizontal size={17}/> Filter</button><button type="button" onClick={onCreateTrip} className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-100 transition hover:-translate-y-0.5 hover:bg-indigo-700"><Plus size={18}/> Create Trip</button></div></div>;
 }
