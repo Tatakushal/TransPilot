@@ -28,6 +28,8 @@ export default function EditVehicleModal({ vehicle, onClose, onSuccess }: Props)
 
   if (!vehicle) return null;
 
+  const selectedVehicle: Vehicle = vehicle;
+
   const update = (key: keyof typeof form, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
     setError("");
@@ -37,7 +39,7 @@ export default function EditVehicleModal({ vehicle, onClose, onSuccess }: Props)
     const capacity = Number(form.capacity);
     const odometer = Number(form.odometer);
     const acquisitionCost = Number(form.acquisitionCost);
-    const registration = vehicle.registration?.trim();
+    const registration = selectedVehicle.registration?.trim();
 
     if (!registration) {
       setError("Vehicle registration is missing.");
@@ -54,7 +56,7 @@ export default function EditVehicleModal({ vehicle, onClose, onSuccess }: Props)
 
     try {
       setSaving(true);
-      await updateVehicle({ ...vehicle, registration, model: form.model, type: form.type, capacity: `${capacity} kg`, odometer, acquisitionCost, status: form.status });
+      await updateVehicle({ ...selectedVehicle, registration, model: form.model, type: form.type, capacity: `${capacity} kg`, odometer, acquisitionCost, status: form.status });
       onSuccess();
       onClose();
     } catch (err) {
@@ -69,7 +71,7 @@ export default function EditVehicleModal({ vehicle, onClose, onSuccess }: Props)
       <div className="w-full max-w-[600px] rounded-3xl bg-white p-8 shadow-2xl">
         <div className="mb-6">
           <h2 className="text-2xl font-bold">Edit Vehicle</h2>
-          <p className="mt-1 text-sm text-slate-500">{vehicle.registration}</p>
+          <p className="mt-1 text-sm text-slate-500">{selectedVehicle.registration}</p>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <input placeholder="Model *" className="rounded-xl border p-3" value={form.model} onChange={(e) => update("model", e.target.value)} />
