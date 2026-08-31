@@ -39,3 +39,7 @@ class TripModel(Base):
     cargo_weight = Column(Float, nullable=False)
     trip_date = Column(Date, nullable=False)
     status = Column(String, default="Pending", nullable=False)
+
+
+# Register auxiliary fleet tables before Base.metadata.create_all() is called by main.py.
+from fleet_records import FuelRecordModel, MaintenanceRecordModel  # noqa: E402,F401
