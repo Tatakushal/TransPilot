@@ -1,10 +1,10 @@
-from functools import wraps
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 from database import get_db
-from auth_models import UserModel, AuthTokenModel
+from auth_models import UserAccountModel, AuthTokenModel
 from auth_security import token_hash
+from datetime import datetime, timezone
 
 bearer = HTTPBearer(auto_error=False)
 
@@ -20,16 +20,19 @@ ROLE_PERMISSIONS = {
 def current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer), db: Session = Depends(get_db)):
     if not credentials:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
-    token = db.query(AuthTokenModel).filter(AuthTokenModel.token_hash == token_hash(credentials.credentials), AuthTokenModel.token_type == "access", AuthTokenModel.used_at.is_(None)).first()
+    token = db.query(AuthTokenModel).filter(
+        AuthTokenModel.token_hash == token_hash(credentials.credentials),
+        AuthTokenModel.token_type == "access",
+        AuthTokenModel.used == False,
+    ).first()
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired session")
-    from datetime import datetime, timezone
     expires = token.expires_at
     if expires.tzinfo is None:
         expires = expires.replace(tzinfo=timezone.utc)
     if expires <= datetime.now(timezone.utc):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired")
-    user = db.get(UserModel, token.user_id)
+    user = db.get(UserAccountModel, token.user_id)
     if not user or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account is inactive")
     return user
