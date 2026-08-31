@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getVehicles } from "@/services/vehicleService";
 import { getDrivers } from "@/services/driverService";
-import { tripService, Trip, TripPayload } from "@/services/tripService";
+import { tripService, type Trip, type TripPayload } from "@/services/tripService";
 
 interface Props {
   open: boolean;
