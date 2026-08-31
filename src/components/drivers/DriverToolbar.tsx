@@ -1,23 +1,3 @@
-import { Plus, Search } from "lucide-react";
-
-export default function DriverToolbar() {
-  return (
-    <div className="flex justify-between items-center mb-6">
-      <div className="relative">
-        <Search
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-          size={18}
-        />
-        <input
-          placeholder="Search drivers..."
-          className="w-80 h-11 rounded-xl border border-gray-200 pl-11 bg-white outline-none"
-        />
-      </div>
-
-      <button className="rounded-xl bg-indigo-600 px-5 py-3 font-medium text-white shadow-sm hover:bg-indigo-700 hover:shadow-md transition-all duration-300">
-        <Plus size={18} />
-        Add Driver
-      </button>
-    </div>
-  );
-}
+import { Plus, Search, X, SlidersHorizontal } from "lucide-react";
+interface Props { search?:string; onSearch?:(v:string)=>void; onAdd?:()=>void; }
+export default function DriverToolbar({search="",onSearch=()=>{},onAdd=()=>{}}:Props){return <div className="flex flex-col gap-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div className="flex flex-1 gap-3"><div className="relative w-full max-w-xl"><Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"/><input value={search} onChange={e=>onSearch(e.target.value)} placeholder="Search driver, license or status..." className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-10 text-sm outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"/>{search&&<button onClick={()=>onSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"><X size={16}/></button>}</div><button className="hidden items-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50 md:flex"><SlidersHorizontal size={17}/> Filters</button></div><button onClick={onAdd} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-100 hover:bg-indigo-700"><Plus size={18}/> Add Driver</button></div>}
