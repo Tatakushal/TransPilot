@@ -2,7 +2,6 @@ from datetime import datetime
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from database import Base
 
-
 class UserAccountModel(Base):
     __tablename__ = "user_accounts"
     id = Column(Integer, primary_key=True, index=True)
@@ -14,7 +13,6 @@ class UserAccountModel(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-
 class AuthTokenModel(Base):
     __tablename__ = "auth_tokens"
     id = Column(Integer, primary_key=True, index=True)
@@ -23,3 +21,4 @@ class AuthTokenModel(Base):
     token_type = Column(String, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     used = Column(Boolean, default=False, nullable=False)
+    used_at = Column(DateTime, nullable=True)
