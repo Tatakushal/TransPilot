@@ -4,15 +4,14 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./transitops.db")
 
-# The project uses psycopg (v3). SQLAlchemy defaults to the psycopg2
-# driver for a plain postgresql:// URL, so explicitly select psycopg.
+# Use psycopg2-binary explicitly for reliable PostgreSQL support on Vercel.
 if SQLALCHEMY_DATABASE_URL.startswith("postgresql://"):
     SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace(
-        "postgresql://", "postgresql+psycopg://", 1
+        "postgresql://", "postgresql+psycopg2://", 1
     )
 elif SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
     SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace(
-        "postgres://", "postgresql+psycopg://", 1
+        "postgres://", "postgresql+psycopg2://", 1
     )
 
 connect_args = {"check_same_thread": False} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {}
