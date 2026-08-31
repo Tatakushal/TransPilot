@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { Vehicle, VehicleStatus } from "@/types/vehicles";
 
-const API = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+const API = import.meta.env.VITE_API_URL || "/api";
 
 interface VehicleResponse {
   registration_number: string;
@@ -39,12 +39,9 @@ function mapVehicle(v: VehicleResponse): Vehicle {
 function toPayload(vehicle: Vehicle): VehiclePayload {
   return {
     registration_number: vehicle.registration.trim().toUpperCase(),
-    vehicle_name_model: vehicle.model.trim(),
-    type: vehicle.type.trim(),
+    vehicle_name_model: vehicle.model.trim(), type: vehicle.type.trim(),
     max_load_capacity: Number(String(vehicle.capacity).replace(/[^0-9.]/g, "")),
-    odometer: Number(vehicle.odometer),
-    acquisition_cost: Number(vehicle.acquisitionCost),
-    status: vehicle.status,
+    odometer: Number(vehicle.odometer), acquisition_cost: Number(vehicle.acquisitionCost), status: vehicle.status,
   };
 }
 
@@ -53,21 +50,14 @@ export async function getVehicles(): Promise<Vehicle[]> {
   return response.data.map(mapVehicle);
 }
 
-export async function addVehicle(vehicle: Vehicle) {
-  return axios.post(`${API}/vehicles`, toPayload(vehicle));
-}
+export async function addVehicle(vehicle: Vehicle) { return axios.post(`${API}/vehicles`, toPayload(vehicle)); }
 
-export async function updateVehicle(vehicle: Vehicle) {
+export async function updateVehicle(vehicle: Pick<Vehicle, "registration" | "model" | "type" | "capacity" | "odometer" | "acquisitionCost" | "status">) {
   return axios.put(`${API}/vehicles/${encodeURIComponent(vehicle.registration)}`, {
-    vehicle_name_model: vehicle.model.trim(),
-    type: vehicle.type.trim(),
+    vehicle_name_model: vehicle.model.trim(), type: vehicle.type.trim(),
     max_load_capacity: Number(String(vehicle.capacity).replace(/[^0-9.]/g, "")),
-    odometer: Number(vehicle.odometer),
-    acquisition_cost: Number(vehicle.acquisitionCost),
-    status: vehicle.status,
+    odometer: Number(vehicle.odometer), acquisition_cost: Number(vehicle.acquisitionCost), status: vehicle.status,
   });
 }
 
-export async function deleteVehicle(registration: string) {
-  return axios.delete(`${API}/vehicles/${encodeURIComponent(registration)}`);
-}
+export async function deleteVehicle(registration: string) { return axios.delete(`${API}/vehicles/${encodeURIComponent(registration)}`); }
