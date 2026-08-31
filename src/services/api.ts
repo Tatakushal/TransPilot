@@ -1,18 +1,34 @@
-const API_URL = "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
-export async function getData(endpoint: string) {
-  const res = await fetch(`${API_URL}/${endpoint}`);
+async function request(endpoint: string, options?: RequestInit) {
+  const res = await fetch(`${API_URL}/${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options?.headers || {}),
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.detail || `API request failed (${res.status})`);
+  }
+
   return res.json();
 }
 
-export async function postData(endpoint: string, body: unknown) {
-  const res = await fetch(`${API_URL}/${endpoint}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+export function getData(endpoint: string) {
+  return request(endpoint);
+}
 
-  return res.json();
+export function postData(endpoint: string, body: unknown) {
+  return request(endpoint, { method: "POST", body: JSON.stringify(body) });
+}
+
+export function putData(endpoint: string, body: unknown) {
+  return request(endpoint, { method: "PUT", body: JSON.stringify(body) });
+}
+
+export function deleteData(endpoint: string) {
+  return request(endpoint, { method: "DELETE" });
 }
