@@ -4,6 +4,12 @@ An AI-powered Fleet Management System built using **React + TypeScript + Vite** 
 
 ---
 
+## Deployment
+
+The repository includes a Vercel multi-service configuration for the Vite frontend and FastAPI backend. Production deployments should provide `DATABASE_URL` (PostgreSQL) and `RESEND_API_KEY` as Vercel environment variables.
+
+---
+
 # Prerequisites
 
 Make sure the following are installed:
