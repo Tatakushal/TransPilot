@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from database import engine, Base, get_db
-from models import VehicleModel, DriverModel
+from models import VehicleModel, DriverModel, TripModel
 
 Base.metadata.create_all(bind=engine)
 
@@ -35,8 +35,8 @@ seed_demo_vehicles()
 
 app = FastAPI(
     title="TransitOps Smart Transport Operations Platform API",
-    description="Production-Ready Backend API for TransitOps Vehicle Registry, Driver Management, and Dashboard KPIs",
-    version="1.0.0"
+    description="Production-Ready Backend API for TransitOps Vehicle Registry, Driver Management, Trips, and Dashboard KPIs",
+    version="1.1.0"
 )
 
 app.add_middleware(
@@ -60,6 +60,13 @@ class DriverStatus(str, Enum):
     ON_TRIP = "On Trip"
     OFF_DUTY = "Off Duty"
     SUSPENDED = "Suspended"
+
+
+class TripStatus(str, Enum):
+    PENDING = "Pending"
+    ACTIVE = "Active"
+    COMPLETED = "Completed"
+    CANCELLED = "Cancelled"
 
 
 class VehicleBase(BaseModel):
@@ -108,6 +115,37 @@ class DriverUpdate(DriverBase):
 
 class Driver(DriverBase):
     license_number: str
+
+
+class TripBase(BaseModel):
+    vehicle_registration: str = Field(..., min_length=1)
+    driver_license: str = Field(..., min_length=1)
+    source: str = Field(..., min_length=1)
+    destination: str = Field(..., min_length=1)
+    cargo_weight: float = Field(..., ge=0.0)
+    trip_date: date
+    status: TripStatus = TripStatus.PENDING
+
+    class Config:
+        from_attributes = True
+
+
+class TripCreate(TripBase):
+    pass
+
+
+class TripUpdate(BaseModel):
+    vehicle_registration: str = Field(..., min_length=1)
+    driver_license: str = Field(..., min_length=1)
+    source: str = Field(..., min_length=1)
+    destination: str = Field(..., min_length=1)
+    cargo_weight: float = Field(..., ge=0.0)
+    trip_date: date
+    status: TripStatus
+
+
+class Trip(TripBase):
+    id: int
 
 
 class DashboardKPIs(BaseModel):
@@ -239,21 +277,118 @@ def delete_driver(license_number: str, db: Session = Depends(get_db)):
     return {"message": f"Driver '{license_number}' successfully removed."}
 
 
+@app.get("/api/trips", response_model=List[Trip], tags=["Trips"])
+def get_trips(db: Session = Depends(get_db)):
+    return db.query(TripModel).order_by(TripModel.trip_date.desc(), TripModel.id.desc()).all()
+
+
+@app.get("/api/trips/{trip_id}", response_model=Trip, tags=["Trips"])
+def get_trip(trip_id: int, db: Session = Depends(get_db)):
+    trip = db.query(TripModel).filter(TripModel.id == trip_id).first()
+    if not trip:
+        raise HTTPException(status_code=404, detail=f"Trip {trip_id} not found.")
+    return trip
+
+
+@app.post("/api/trips", response_model=Trip, status_code=201, tags=["Trips"])
+def create_trip(trip: TripCreate, db: Session = Depends(get_db)):
+    vehicle_reg = trip.vehicle_registration.strip().upper()
+    driver_license = trip.driver_license.strip().upper()
+    vehicle = db.query(VehicleModel).filter(VehicleModel.registration_number == vehicle_reg).first()
+    driver = db.query(DriverModel).filter(DriverModel.license_number == driver_license).first()
+    if not vehicle:
+        raise HTTPException(status_code=400, detail=f"Vehicle '{vehicle_reg}' does not exist.")
+    if not driver:
+        raise HTTPException(status_code=400, detail=f"Driver '{driver_license}' does not exist.")
+    if vehicle.status != "Available":
+        raise HTTPException(status_code=400, detail=f"Vehicle '{vehicle_reg}' is not available.")
+    if driver.status != "Available":
+        raise HTTPException(status_code=400, detail=f"Driver '{driver_license}' is not available.")
+    if trip.cargo_weight > vehicle.max_load_capacity:
+        raise HTTPException(status_code=400, detail="Cargo weight exceeds the vehicle's maximum load capacity.")
+    db_trip = TripModel(
+        vehicle_registration=vehicle_reg,
+        driver_license=driver_license,
+        source=trip.source.strip(),
+        destination=trip.destination.strip(),
+        cargo_weight=trip.cargo_weight,
+        trip_date=trip.trip_date,
+        status=trip.status.value,
+    )
+    db.add(db_trip)
+    if trip.status in (TripStatus.PENDING, TripStatus.ACTIVE):
+        vehicle.status = "On Trip"
+        driver.status = "On Trip"
+    db.commit()
+    db.refresh(db_trip)
+    return db_trip
+
+
+@app.put("/api/trips/{trip_id}", response_model=Trip, tags=["Trips"])
+def update_trip(trip_id: int, trip_update: TripUpdate, db: Session = Depends(get_db)):
+    db_trip = db.query(TripModel).filter(TripModel.id == trip_id).first()
+    if not db_trip:
+        raise HTTPException(status_code=404, detail=f"Trip {trip_id} not found.")
+    vehicle_reg = trip_update.vehicle_registration.strip().upper()
+    driver_license = trip_update.driver_license.strip().upper()
+    vehicle = db.query(VehicleModel).filter(VehicleModel.registration_number == vehicle_reg).first()
+    driver = db.query(DriverModel).filter(DriverModel.license_number == driver_license).first()
+    if not vehicle or not driver:
+        raise HTTPException(status_code=400, detail="Selected vehicle or driver does not exist.")
+    if trip_update.cargo_weight > vehicle.max_load_capacity:
+        raise HTTPException(status_code=400, detail="Cargo weight exceeds the vehicle's maximum load capacity.")
+    db_trip.vehicle_registration = vehicle_reg
+    db_trip.driver_license = driver_license
+    db_trip.source = trip_update.source.strip()
+    db_trip.destination = trip_update.destination.strip()
+    db_trip.cargo_weight = trip_update.cargo_weight
+    db_trip.trip_date = trip_update.trip_date
+    db_trip.status = trip_update.status.value
+    if trip_update.status in (TripStatus.PENDING, TripStatus.ACTIVE):
+        vehicle.status = "On Trip"
+        driver.status = "On Trip"
+    else:
+        vehicle.status = "Available"
+        driver.status = "Available"
+    db.commit()
+    db.refresh(db_trip)
+    return db_trip
+
+
+@app.delete("/api/trips/{trip_id}", tags=["Trips"])
+def delete_trip(trip_id: int, db: Session = Depends(get_db)):
+    db_trip = db.query(TripModel).filter(TripModel.id == trip_id).first()
+    if not db_trip:
+        raise HTTPException(status_code=404, detail=f"Trip {trip_id} not found.")
+    vehicle = db.query(VehicleModel).filter(VehicleModel.registration_number == db_trip.vehicle_registration).first()
+    driver = db.query(DriverModel).filter(DriverModel.license_number == db_trip.driver_license).first()
+    if vehicle and vehicle.status == "On Trip":
+        vehicle.status = "Available"
+    if driver and driver.status == "On Trip":
+        driver.status = "Available"
+    db.delete(db_trip)
+    db.commit()
+    return {"message": f"Trip {trip_id} successfully removed."}
+
+
 @app.get("/api/dashboard/kpis", response_model=DashboardKPIs, tags=["Dashboard"])
 def dashboard_kpis(db: Session = Depends(get_db)):
     vehicles = db.query(VehicleModel).all()
     drivers = db.query(DriverModel).all()
+    trips = db.query(TripModel).all()
     active_vehicles = sum(1 for v in vehicles if v.status != "Retired")
     available_vehicles = sum(1 for v in vehicles if v.status == "Available")
     vehicles_in_maintenance = sum(1 for v in vehicles if v.status == "In Shop")
     drivers_on_duty = sum(1 for d in drivers if d.status in ("Available", "On Trip"))
+    active_trips = sum(1 for t in trips if t.status == "Active")
+    pending_trips = sum(1 for t in trips if t.status == "Pending")
     utilization = ((active_vehicles - available_vehicles) / active_vehicles * 100) if active_vehicles else 0
     return DashboardKPIs(
         active_vehicles=active_vehicles,
         available_vehicles=available_vehicles,
         vehicles_in_maintenance=vehicles_in_maintenance,
-        active_trips=0,
-        pending_trips=0,
+        active_trips=active_trips,
+        pending_trips=pending_trips,
         drivers_on_duty=drivers_on_duty,
         fleet_utilization_percent=round(utilization, 1),
     )
