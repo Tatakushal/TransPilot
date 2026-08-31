@@ -1,0 +1,10 @@
+{
+  "name": "TransPilot Fleet Operations",
+  "short_name": "TransPilot",
+  "description": "Fleet operations management workspace for vehicles, drivers, trips, fuel and maintenance.",
+  "start_url": "/login",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#4f46e5",
+  "icons": [{"src":"/favicon.svg","sizes":"any","type":"image/svg+xml"}]
+}
