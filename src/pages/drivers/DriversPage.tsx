@@ -1,25 +1,6 @@
+import { useMemo, useState } from "react";
 import AppShell from "@/components/layout/AppShell";
 import DriverToolbar from "@/components/drivers/DriverToolbar";
 import DriverTable from "@/components/drivers/DriverTable";
-
-export default function DriversPage() {
-  return (
-    <AppShell>
-      <div className="space-y-8">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            Driver Management
-          </h1>
-
-          <p className="text-base text-slate-500">
-            Manage driver profiles and safety compliance.
-          </p>
-        </div>
-
-        <DriverToolbar />
-
-        <DriverTable />
-      </div>
-    </AppShell>
-  );
-}
+import { ShieldCheck, Users, UserCheck, AlertTriangle } from "lucide-react";
+export default function DriversPage(){const[search,setSearch]=useState("");const[showAdd,setShowAdd]=useState(false);const[drivers,setDrivers]=useState([{name:"Alex Johnson",license:"DL-982134",safety:95,status:"Available"},{name:"Robert Smith",license:"DL-453221",safety:81,status:"On Trip"},{name:"Kevin Martin",license:"DL-112211",safety:62,status:"Suspended"}]);const stats=useMemo(()=>({total:drivers.length,available:drivers.filter(d=>d.status==="Available").length,onTrip:drivers.filter(d=>d.status==="On Trip").length,alerts:drivers.filter(d=>d.safety<70).length}),[drivers]);return <AppShell><div className="space-y-7"><div><p className="text-sm font-semibold text-indigo-600">People & safety</p><h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">Driver Management</h1><p className="mt-2 text-sm text-slate-500">Manage driver profiles, availability and safety compliance.</p></div><div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{[["Total Drivers",stats.total,Users],["Available",stats.available,UserCheck],["On Trip",stats.onTrip,ShieldCheck],["Safety Alerts",stats.alerts,AlertTriangle]].map(([label,value,Icon])=><div key={label as string} className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm"><div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-500">{label as string}</span><span className="rounded-xl bg-indigo-50 p-2.5 text-indigo-600"><Icon size={19}/></span></div><p className="mt-4 text-3xl font-bold text-slate-900">{value as number}</p></div>)}</div><DriverToolbar search={search} onSearch={setSearch} onAdd={()=>setShowAdd(true)}/><DriverTable/>{showAdd&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm"><div className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl"><h2 className="text-xl font-bold">Add Driver</h2><p className="mt-1 text-sm text-slate-500">Create a driver profile for your fleet.</p><div className="mt-6 space-y-4"><input placeholder="Full name" className="h-11 w-full rounded-xl border border-slate-200 px-4 text-sm"/><input placeholder="License number" className="h-11 w-full rounded-xl border border-slate-200 px-4 text-sm"/><div className="flex gap-3"><button onClick={()=>setShowAdd(false)} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-semibold">Cancel</button><button onClick={()=>setShowAdd(false)} className="flex-1 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white">Create Driver</button></div></div></div></div>}</div></AppShell>}
