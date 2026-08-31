@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, Date
 from database import Base
+
 
 class VehicleModel(Base):
     __tablename__ = "vehicles"
@@ -13,6 +14,7 @@ class VehicleModel(Base):
     acquisition_cost = Column(Float, nullable=False)
     status = Column(String, default="Available")
 
+
 class DriverModel(Base):
     __tablename__ = "drivers"
 
@@ -24,3 +26,16 @@ class DriverModel(Base):
     contact_number = Column(String, nullable=False)
     safety_score = Column(Float, nullable=False)
     status = Column(String, default="Available")
+
+
+class TripModel(Base):
+    __tablename__ = "trips"
+
+    id = Column(Integer, primary_key=True, index=True)
+    vehicle_registration = Column(String, nullable=False, index=True)
+    driver_license = Column(String, nullable=False, index=True)
+    source = Column(String, nullable=False)
+    destination = Column(String, nullable=False)
+    cargo_weight = Column(Float, nullable=False)
+    trip_date = Column(Date, nullable=False)
+    status = Column(String, default="Pending", nullable=False)
