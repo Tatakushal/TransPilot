@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Eye, Pencil, Trash2, Route, Search, RefreshCw } from "lucide-react";
 import StatusBadge from "@/components/ui/StatusBadge";
-import { tripService, Trip } from "@/services/tripService";
+import { tripService, type Trip } from "@/services/tripService";
 
 interface Props { refreshKey?: number; onEdit?: (trip: Trip) => void; }
 
@@ -22,9 +22,7 @@ export default function TripTable({ refreshKey = 0, onEdit }: Props) {
 
   useEffect(() => { load(); }, [load, refreshKey]);
 
-  const filtered = useMemo(() => trips.filter(t =>
-    Object.values(t).join(" ").toLowerCase().includes(q.toLowerCase())
-  ), [trips, q]);
+  const filtered = useMemo(() => trips.filter(t => Object.values(t).join(" ").toLowerCase().includes(q.toLowerCase())), [trips, q]);
 
   async function del(id: number) {
     if (!confirm(`Delete trip TR-${String(id).padStart(4, "0")}?`)) return;
