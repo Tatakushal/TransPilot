@@ -1,5 +1,5 @@
 import axios from "axios";
-const API = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+const API = import.meta.env.VITE_API_URL || "/api";
 export type DriverStatus = "Available" | "On Trip" | "Off Duty" | "Suspended";
 export interface Driver { name:string; license:string; licenseCategory:string; licenseExpiryDate:string; contactNumber:string; safety:number; status:DriverStatus; }
 interface ApiDriver {name:string;license_number:string;license_category:string;license_expiry_date:string;contact_number:string;safety_score:number;status:DriverStatus}
