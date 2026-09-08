@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AppShell from "@/components/layout/AppShell";
 import { BarChart3, Download, FileText, ShieldCheck, TrendingUp, Truck, Route, Users, Wrench, RefreshCw } from "lucide-react";
 import { getVehicles } from "@/services/vehicleService";
@@ -31,16 +31,12 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const [vehicles, drivers, trips, fuel, maintenance] = await Promise.all([
-        getVehicles(),
-        getDrivers(),
-        tripService.list(),
-        fuelService.list(),
-        maintenanceService.list(),
+        getVehicles(), getDrivers(), tripService.list(), fuelService.list(), maintenanceService.list(),
       ]);
       setData({ vehicles, drivers, trips, fuel, maintenance });
     } catch (err) {
@@ -48,9 +44,9 @@ export default function ReportsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { void load(); }, [load]);
 
   const report = useMemo(() => {
     if (!data) return null;
@@ -68,7 +64,7 @@ export default function ReportsPage() {
       start.setDate(cutoff.getDate() + Math.floor(index * periodDays[period] / 12));
       const end = new Date(cutoff);
       end.setDate(cutoff.getDate() + Math.floor((index + 1) * periodDays[period] / 12));
-      return trips.filter((trip) => { const date = new Date(`${trip.trip_date}T00:00:00`); return date >= start && date < end; }).length;
+      return trips.filter((trip) => { const tripDate = new Date(`${trip.trip_date}T00:00:00`); return tripDate >= start && tripDate < end; }).length;
     });
     const maxBucket = Math.max(...buckets, 1);
 
@@ -79,8 +75,6 @@ export default function ReportsPage() {
         { title: "Drivers Available", value: data.drivers.filter((driver) => driver.status === "Available").length, icon: Users },
         { title: "Maintenance Due", value: data.maintenance.filter((record) => record.status === "Scheduled" || record.status === "In Progress").length, icon: Wrench },
       ],
-      activeVehicles: activeVehicles.length,
-      availableVehicles: availableVehicles.length,
       utilization: activeVehicles.length ? Math.round(((activeVehicles.length - availableVehicles.length) / activeVehicles.length) * 100) : 0,
       safetyAverage: Math.round(safetyAverage),
       periodTrips: trips.length,
@@ -101,7 +95,7 @@ export default function ReportsPage() {
       ["Drivers Available", String(report.stats[2].value)],
       ["Maintenance Due", String(report.stats[3].value)],
       [`Trips in ${period}`, String(report.periodTrips)],
-      [`Fuel Cost in ${period}",`, String(report.periodFuelCost)],
+      [`Fuel Cost in ${period}`, String(report.periodFuelCost)],
       [`Fuel Litres in ${period}`, String(report.periodFuelLitres)],
       [`Maintenance Cost in ${period}`, String(report.periodMaintenanceCost)],
       ["Fleet Utilization", `${report.utilization}%`],
@@ -116,10 +110,13 @@ export default function ReportsPage() {
     URL.revokeObjectURL(url);
   }
 
+  const fallbackStats = [{ title: "Total Vehicles", value: 0, icon: Truck }, { title: "Active Trips", value: 0, icon: Route }, { title: "Drivers Available", value: 0, icon: Users }, { title: "Maintenance Due", value: 0, icon: Wrench }];
+  const stats = report?.stats ?? fallbackStats;
+
   return <AppShell><div className="space-y-7">
     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-semibold text-indigo-600">Performance intelligence</p><h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">Reports & Analytics</h1><p className="mt-2 text-sm text-slate-500">Live operational metrics calculated from your fleet records.</p></div><div className="flex gap-3"><select value={period} onChange={(e) => setPeriod(e.target.value as Period)} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 outline-none"><option>7 days</option><option>30 days</option><option>90 days</option></select><button onClick={exportReport} disabled={!report || loading} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-100 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"><Download size={17} /> Export CSV</button></div></div>
     {error && <div className="flex items-center justify-between rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700"><span>{error}</span><button type="button" onClick={() => void load()} className="font-semibold underline">Retry</button></div>}
-    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{(report?.stats ?? [{ title: "Total Vehicles", value: 0, icon: Truck }, { title: "Active Trips", value: 0, icon: Route }, { title: "Drivers Available", value: 0, icon: Users }, { title: "Maintenance Due", value: 0, icon: Wrench }]).map(({ title, value, icon: Icon }) => <div key={title} className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm"><div className="flex items-center justify-between"><p className="text-sm font-medium text-slate-500">{title}</p><div className="rounded-xl bg-indigo-50 p-2.5 text-indigo-600"><Icon size={19} /></div></div><p className="mt-4 text-3xl font-bold tracking-tight text-slate-900">{loading ? "—" : value}</p><p className="mt-1 text-xs text-slate-400">Current live snapshot</p></div>)}</div>
+    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ title, value, icon: Icon }) => <div key={title} className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm"><div className="flex items-center justify-between"><p className="text-sm font-medium text-slate-500">{title}</p><div className="rounded-xl bg-indigo-50 p-2.5 text-indigo-600"><Icon size={19} /></div></div><p className="mt-4 text-3xl font-bold tracking-tight text-slate-900">{loading ? "—" : value}</p><p className="mt-1 text-xs text-slate-400">Current live snapshot</p></div>)}</div>
     {report && <div className="grid gap-6 lg:grid-cols-5"><section className="rounded-[28px] border border-slate-200 bg-white p-7 shadow-sm lg:col-span-3"><div className="flex items-start justify-between"><div><p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">Trip activity</p><h2 className="mt-1 text-xl font-bold text-slate-900">Operations over {period}</h2><p className="mt-1 text-sm text-slate-500">Number of trips recorded in each period segment.</p></div><BarChart3 className="text-indigo-600" /></div><div className="mt-8 flex h-64 items-end gap-2 rounded-2xl bg-slate-50 p-6">{report.buckets.map((value, index) => <div key={index} className="group flex h-full flex-1 items-end"><div className="w-full rounded-t-lg bg-indigo-500 transition hover:bg-indigo-700" style={{ height: `${Math.max(4, (value / report.maxBucket) * 100)}%` }} title={`${value} trips`} /></div>)}</div></section><section className="rounded-[28px] border border-slate-200 bg-white p-7 shadow-sm lg:col-span-2"><div className="flex items-center gap-3"><ShieldCheck className="text-emerald-600" /><div><h2 className="font-bold text-slate-900">Fleet health</h2><p className="text-sm text-slate-500">Current safety and utilization indicators</p></div></div><div className="mt-8 space-y-6"><div><div className="mb-2 flex justify-between text-sm"><span className="font-medium text-slate-600">Fleet Utilization</span><b>{report.utilization}%</b></div><div className="h-2 rounded-full bg-slate-100"><div className="h-2 rounded-full bg-indigo-500" style={{ width: `${report.utilization}%` }} /></div></div><div><div className="mb-2 flex justify-between text-sm"><span className="font-medium text-slate-600">Driver Safety</span><b>{report.safetyAverage}%</b></div><div className="h-2 rounded-full bg-slate-100"><div className="h-2 rounded-full bg-emerald-500" style={{ width: `${report.safetyAverage}%` }} /></div></div><div className="rounded-2xl bg-indigo-50 p-5"><div className="flex gap-3"><TrendingUp className="text-indigo-600" size={20} /><div><p className="text-sm font-semibold text-indigo-900">Period summary</p><p className="mt-1 text-xs leading-5 text-indigo-700">{report.periodTrips} trips, {report.periodFuelLitres.toLocaleString("en-IN")} L of fuel and ₹{report.periodMaintenanceCost.toLocaleString("en-IN")} in maintenance were recorded in the selected period.</p></div></div></div></div></section></div>}
     {loading && <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-500"><RefreshCw className="mx-auto animate-spin text-indigo-600" size={20} /><p className="mt-3">Loading live report data…</p></div>}
     <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-500 shadow-sm"><FileText size={18} className="text-indigo-600" /> Reports use live vehicle, driver, trip, fuel and maintenance records. Export the selected period as CSV.</div>
