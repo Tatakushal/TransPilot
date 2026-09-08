@@ -1,91 +1,37 @@
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { TrendingUp } from "lucide-react";
-
-const stats = [
-  { label: "Distance", value: "12,845 km" },
-  { label: "Trips", value: "184" },
-  { label: "Fuel", value: "91%" },
-];
+import { TrendingDown, TrendingUp, RefreshCw } from "lucide-react";
+import { tripService, type Trip } from "@/services/tripService";
+import { fuelService, type FuelRecord } from "@/services/fuelService";
+import { maintenanceService, type MaintenanceRecord } from "@/services/maintenanceService";
 
 export default function FleetStatus() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm hover:shadow-lg transition-all duration-300"
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900">
-            Fleet Performance
-          </h2>
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [fuel, setFuel] = useState<FuelRecord[]>([]);
+  const [maintenance, setMaintenance] = useState<MaintenanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
-          <p className="mt-1 text-sm text-slate-500">Last 7 days</p>
-        </div>
+  useEffect(() => {
+    let active = true;
+    Promise.all([tripService.list(), fuelService.list(), maintenanceService.list()]).then(([nextTrips, nextFuel, nextMaintenance]) => {
+      if (!active) return;
+      setTrips(nextTrips); setFuel(nextFuel); setMaintenance(nextMaintenance);
+    }).catch(() => { /* optional dashboard section */ }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
-        <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1">
-          <TrendingUp size={16} className="text-emerald-600" />
+  const summary = useMemo(() => {
+    const now = new Date();
+    const currentStart = new Date(now); currentStart.setHours(0, 0, 0, 0); currentStart.setDate(currentStart.getDate() - 6);
+    const previousStart = new Date(currentStart); previousStart.setDate(previousStart.getDate() - 7);
+    const previousEnd = new Date(currentStart);
+    const currentTrips = trips.filter((trip) => new Date(`${trip.trip_date}T00:00:00`) >= currentStart).length;
+    const previousTrips = trips.filter((trip) => { const date = new Date(`${trip.trip_date}T00:00:00`); return date >= previousStart && date < previousEnd; }).length;
+    const trend = previousTrips ? Math.round(((currentTrips - previousTrips) / previousTrips) * 100) : 0;
+    const currentFuel = fuel.filter((record) => new Date(`${record.fuel_date}T00:00:00`) >= currentStart).reduce((sum, record) => sum + record.liters, 0);
+    const currentMaintenance = maintenance.filter((record) => new Date(`${record.service_date}T00:00:00`) >= currentStart).reduce((sum, record) => sum + record.cost, 0);
+    return { currentTrips, currentFuel, currentMaintenance, trend };
+  }, [fuel, maintenance, trips]);
 
-          <span className="text-sm font-semibold text-emerald-600">+8.2%</span>
-        </div>
-      </div>
-
-      <div className="mt-8 h-[240px]">
-        <svg
-          viewBox="0 0 700 260"
-          className="h-full w-full"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient id="fleetFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#4F46E5" stopOpacity="0.25" />
-
-              <stop offset="100%" stopColor="#4F46E5" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-
-          <path
-            d="
-              M0 190
-              C70 180 120 155 170 160
-              S280 120 340 125
-              S430 90 510 100
-              S610 70 700 75
-            "
-            fill="none"
-            stroke="#4F46E5"
-            strokeWidth="4"
-            strokeLinecap="round"
-          />
-
-          <path
-            d="
-              M0 190
-              C70 180 120 155 170 160
-              S280 120 340 125
-              S430 90 510 100
-              S610 70 700 75
-              L700 260
-              L0 260
-              Z
-            "
-            fill="url(#fleetFill)"
-          />
-        </svg>
-      </div>
-
-      <div className="mt-6 grid grid-cols-3 gap-6 border-t border-slate-100 pt-6">
-        {stats.map((item) => (
-          <div key={item.label}>
-            <p className="text-sm text-slate-500">{item.label}</p>
-
-            <h3 className="mt-2 text-xl font-semibold text-slate-900">
-              {item.value}
-            </h3>
-          </div>
-        ))}
-      </div>
-    </motion.div>
-  );
+  return <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:shadow-lg"><div className="flex items-start justify-between"><div><h2 className="text-xl font-semibold text-slate-900">Fleet Performance</h2><p className="mt-1 text-sm text-slate-500">Last 7 days from live operational records</p></div>{loading ? <RefreshCw className="animate-spin text-slate-400" size={20} /> : <div className={`flex items-center gap-2 rounded-full px-3 py-1 ${summary.trend >= 0 ? "bg-emerald-50" : "bg-rose-50"}`}>{summary.trend >= 0 ? <TrendingUp size={16} className="text-emerald-600" /> : <TrendingDown size={16} className="text-rose-600" />}<span className={`text-sm font-semibold ${summary.trend >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{summary.trend >= 0 ? "+" : ""}{summary.trend}% trips</span></div>}</div><div className="mt-8 grid grid-cols-3 gap-6 border-t border-slate-100 pt-6"><div><p className="text-sm text-slate-500">Trips</p><h3 className="mt-2 text-xl font-semibold text-slate-900">{loading ? "—" : summary.currentTrips}</h3></div><div><p className="text-sm text-slate-500">Fuel</p><h3 className="mt-2 text-xl font-semibold text-slate-900">{loading ? "—" : `${summary.currentFuel.toLocaleString("en-IN")} L`}</h3></div><div><p className="text-sm text-slate-500">Maintenance</p><h3 className="mt-2 text-xl font-semibold text-slate-900">{loading ? "—" : `₹${summary.currentMaintenance.toLocaleString("en-IN")}`}</h3></div></div></motion.div>;
 }
