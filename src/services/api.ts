@@ -20,7 +20,6 @@ export async function request(endpoint: string, options: RequestInit = {}) {
     const body = await res.json().catch(() => null);
     throw new Error(body?.detail || `API request failed (${res.status})`);
   }
-
   if (res.status === 204) return null;
   return res.json();
 }
@@ -28,4 +27,5 @@ export async function request(endpoint: string, options: RequestInit = {}) {
 export function getData(endpoint: string) { return request(endpoint); }
 export function postData(endpoint: string, body: unknown) { return request(endpoint, { method: "POST", body: JSON.stringify(body) }); }
 export function putData(endpoint: string, body: unknown) { return request(endpoint, { method: "PUT", body: JSON.stringify(body) }); }
+export function patchData(endpoint: string, body: unknown) { return request(endpoint, { method: "PATCH", body: JSON.stringify(body) }); }
 export function deleteData(endpoint: string) { return request(endpoint, { method: "DELETE" }); }
