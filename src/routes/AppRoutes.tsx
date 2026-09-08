@@ -20,9 +20,9 @@ export default function AppRoutes() {
     <Route path="/register" element={<RegisterPage />} />
     <Route path="/privacy" element={<PrivacyPolicyPage />} />
     <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-    <Route path="/vehicles" element={<ProtectedRoute><VehiclesPage /></ProtectedRoute>} />
-    <Route path="/drivers" element={<ProtectedRoute><DriversPage /></ProtectedRoute>} />
-    <Route path="/trips" element={<ProtectedRoute><TripsPage /></ProtectedRoute>} />
+    <Route path="/vehicles" element={<ProtectedRoute allowedRoles={["admin", "fleet-manager", "dispatcher"]}><VehiclesPage /></ProtectedRoute>} />
+    <Route path="/drivers" element={<ProtectedRoute allowedRoles={["admin", "fleet-manager", "dispatcher", "safety-officer"]}><DriversPage /></ProtectedRoute>} />
+    <Route path="/trips" element={<ProtectedRoute allowedRoles={["admin", "fleet-manager", "dispatcher"]}><TripsPage /></ProtectedRoute>} />
     <Route path="/maintenance" element={<ProtectedRoute allowedRoles={["admin", "fleet-manager"]}><MaintenancePage /></ProtectedRoute>} />
     <Route path="/fuel" element={<ProtectedRoute allowedRoles={["admin", "financial-analyst"]}><FuelPage /></ProtectedRoute>} />
     <Route path="/reports" element={<ProtectedRoute allowedRoles={["admin", "fleet-manager", "financial-analyst", "safety-officer"]}><ReportsPage /></ProtectedRoute>} />
