@@ -1,4 +1,4 @@
-import { deleteData, getData, patchData, postData } from "@/services/api";
+import { getData, patchData, postData } from "@/services/api";
 
 export type AdminRole = "admin" | "fleet-manager" | "dispatcher" | "safety-officer" | "financial-analyst";
 export interface AdminUser { id:number; name:string; email:string; role:AdminRole; is_active:boolean; email_verified?:boolean; created_at?:string; }
