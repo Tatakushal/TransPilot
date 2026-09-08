@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
+import OperationsPage from "@/pages/operations/OperationsPage";
 import VehiclesPage from "@/pages/vehicles/VehiclesPage";
 import DriversPage from "@/pages/drivers/DriversPage";
 import TripsPage from "@/pages/trips/TripsPage";
@@ -21,6 +22,7 @@ export default function AppRoutes() {
     <Route path="/register" element={<RegisterPage />} />
     <Route path="/privacy" element={<PrivacyPolicyPage />} />
     <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+    <Route path="/operations" element={<ProtectedRoute><OperationsPage /></ProtectedRoute>} />
     <Route path="/vehicles" element={<ProtectedRoute allowedRoles={["admin", "fleet-manager", "dispatcher"]}><VehiclesPage /></ProtectedRoute>} />
     <Route path="/drivers" element={<ProtectedRoute allowedRoles={["admin", "fleet-manager", "dispatcher", "safety-officer"]}><DriversPage /></ProtectedRoute>} />
     <Route path="/trips" element={<ProtectedRoute allowedRoles={["admin", "fleet-manager", "dispatcher"]}><TripsPage /></ProtectedRoute>} />
