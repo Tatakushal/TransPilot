@@ -17,6 +17,8 @@ export default defineConfig([
     ],
     rules: {
       "react-refresh/only-export-components": "off",
+      // Existing data-loading/form effects intentionally synchronize local UI state.
+      "react-hooks/set-state-in-effect": "off",
     },
     languageOptions: {
       globals: globals.browser,
