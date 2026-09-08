@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Eye, Pencil, Trash2, UserRound, RefreshCw } from "lucide-react";
 import StatusBadge from "../ui/StatusBadge";
 import { deleteDriver, getDrivers, type Driver } from "@/services/driverService";
@@ -17,7 +17,7 @@ export default function DriverTable({ search, refreshKey, onEdit, onView, onDriv
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState("");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -29,11 +29,11 @@ export default function DriverTable({ search, refreshKey, onEdit, onView, onDriv
     } finally {
       setLoading(false);
     }
-  };
+  }, [onDriversChange]);
 
   useEffect(() => {
     void load();
-  }, [refreshKey]);
+  }, [load, refreshKey]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -71,10 +71,7 @@ export default function DriverTable({ search, refreshKey, onEdit, onView, onDriv
               {loading ? <tr><td colSpan={6} className="p-14 text-center text-sm text-slate-500">Loading drivers...</td></tr> : filtered.length === 0 ? <tr><td colSpan={6} className="p-14 text-center"><UserRound className="mx-auto text-slate-300" size={34} /><p className="mt-3 font-semibold text-slate-700">{drivers.length ? "No drivers match your search" : "No drivers yet"}</p></td></tr> : filtered.map((driver) => (
                 <tr key={driver.license} className="border-t border-slate-100 hover:bg-slate-50/70">
                   <td className="px-7 py-5"><div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">{driver.name.split(" ").map((name) => name[0]).join("").slice(0, 2)}</div><div><p className="font-semibold text-slate-800">{driver.name}</p><p className="text-xs text-slate-400">{driver.licenseCategory}</p></div></div></td>
-                  <td className="px-5 font-mono text-sm text-slate-500">{driver.license}</td>
-                  <td className="px-5 text-sm font-semibold">{driver.safety}%</td>
-                  <td className="px-5 text-sm text-slate-500">{driver.licenseExpiryDate}</td>
-                  <td className="px-5"><StatusBadge status={driver.status} /></td>
+                  <td className="px-5 font-mono text-sm text-slate-500">{driver.license}</td><td className="px-5 text-sm font-semibold">{driver.safety}%</td><td className="px-5 text-sm text-slate-500">{driver.licenseExpiryDate}</td><td className="px-5"><StatusBadge status={driver.status} /></td>
                   <td className="px-5"><div className="flex justify-end gap-1"><button type="button" onClick={() => onView(driver)} className="rounded-lg p-2 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600" title="View" aria-label={`View ${driver.name}`}><Eye size={17} /></button><button type="button" onClick={() => onEdit(driver)} className="rounded-lg p-2 text-indigo-600 hover:bg-indigo-50" title="Edit" aria-label={`Edit ${driver.name}`}><Pencil size={17} /></button><button type="button" disabled={deleting === driver.license} onClick={() => void remove(driver)} className="rounded-lg p-2 text-red-500 hover:bg-red-50 disabled:opacity-50" title="Delete" aria-label={`Delete ${driver.name}`}><Trash2 size={17} /></button></div></td>
                 </tr>
               ))}
