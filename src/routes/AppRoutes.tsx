@@ -23,10 +23,10 @@ export default function AppRoutes() {
     <Route path="/vehicles" element={<ProtectedRoute><VehiclesPage /></ProtectedRoute>} />
     <Route path="/drivers" element={<ProtectedRoute><DriversPage /></ProtectedRoute>} />
     <Route path="/trips" element={<ProtectedRoute><TripsPage /></ProtectedRoute>} />
-    <Route path="/maintenance" element={<ProtectedRoute><MaintenancePage /></ProtectedRoute>} />
-    <Route path="/fuel" element={<ProtectedRoute><FuelPage /></ProtectedRoute>} />
-    <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
-    <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+    <Route path="/maintenance" element={<ProtectedRoute allowedRoles={["admin", "fleet-manager"]}><MaintenancePage /></ProtectedRoute>} />
+    <Route path="/fuel" element={<ProtectedRoute allowedRoles={["admin", "financial-analyst"]}><FuelPage /></ProtectedRoute>} />
+    <Route path="/reports" element={<ProtectedRoute allowedRoles={["admin", "fleet-manager", "financial-analyst", "safety-officer"]}><ReportsPage /></ProtectedRoute>} />
+    <Route path="/settings" element={<ProtectedRoute allowedRoles={["admin"]}><SettingsPage /></ProtectedRoute>} />
     <Route path="*" element={<NotFoundPage />} />
   </Routes></BrowserRouter>;
 }
