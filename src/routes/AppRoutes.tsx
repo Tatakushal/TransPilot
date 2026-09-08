@@ -8,6 +8,7 @@ import MaintenancePage from "@/pages/maintenance/MaintenancePage";
 import FuelPage from "@/pages/fuel/FuelPage";
 import ReportsPage from "@/pages/reports/ReportsPage";
 import SettingsPage from "@/pages/settings/SettingsPage";
+import AdminPage from "@/pages/admin/AdminPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import PrivacyPolicyPage from "@/pages/privacy/PrivacyPolicyPage";
@@ -26,6 +27,7 @@ export default function AppRoutes() {
     <Route path="/maintenance" element={<ProtectedRoute allowedRoles={["admin", "fleet-manager"]}><MaintenancePage /></ProtectedRoute>} />
     <Route path="/fuel" element={<ProtectedRoute allowedRoles={["admin", "financial-analyst"]}><FuelPage /></ProtectedRoute>} />
     <Route path="/reports" element={<ProtectedRoute allowedRoles={["admin", "fleet-manager", "financial-analyst", "safety-officer"]}><ReportsPage /></ProtectedRoute>} />
+    <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPage /></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute allowedRoles={["admin"]}><SettingsPage /></ProtectedRoute>} />
     <Route path="*" element={<NotFoundPage />} />
   </Routes></BrowserRouter>;
