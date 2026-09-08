@@ -6,6 +6,7 @@ from database import get_db
 from auth_models import UserAccountModel, AuthTokenModel, AuditLogModel
 from auth_security import hash_password, verify_password, create_token, token_hash
 from authorization import current_user
+from admin_api import router as admin_control_router
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 ALLOWED_ROLES = {"admin", "fleet-manager", "dispatcher", "safety-officer", "financial-analyst"}
@@ -115,18 +116,12 @@ def delete_account(user=Depends(current_user), db: Session = Depends(get_db)):
     user.is_active = False; db.query(AuthTokenModel).filter(AuthTokenModel.user_id == user.id).update({"used": True}); _audit(db, user, "account_deactivated", "account"); db.commit()
     return {"message": "Account deactivated"}
 
-# ----------------------------- Admin control plane -----------------------------
+# Backwards-compatible admin endpoints retained for existing clients.
 @router.get("/admin/overview")
 def admin_overview(user=Depends(current_user), db: Session = Depends(get_db)):
     if user.role != "admin": raise HTTPException(403, "Admin access required")
-    from models import VehicleModel, DriverModel, TripModel
-    return {
-        "total_users": db.query(UserAccountModel).count(),
-        "active_users": db.query(UserAccountModel).filter(UserAccountModel.is_active == True).count(),
-        "fleet_size": db.query(VehicleModel).filter(VehicleModel.status != "Retired").count(),
-        "active_trips": db.query(TripModel).filter(TripModel.status == "Active").count(),
-        "system_health": "Operational",
-    }
+    from models import VehicleModel, TripModel
+    return {"total_users": db.query(UserAccountModel).count(), "active_users": db.query(UserAccountModel).filter(UserAccountModel.is_active == True).count(), "fleet_size": db.query(VehicleModel).filter(VehicleModel.status != "Retired").count(), "active_trips": db.query(TripModel).filter(TripModel.status == "Active").count(), "system_health": "Operational"}
 
 @router.get("/admin/users")
 def admin_users(user=Depends(current_user), db: Session = Depends(get_db)):
@@ -174,3 +169,6 @@ def admin_audit_logs(user=Depends(current_user), db: Session = Depends(get_db)):
     if user.role != "admin": raise HTTPException(403, "Admin access required")
     rows = db.query(AuditLogModel).order_by(AuditLogModel.created_at.desc()).limit(200).all()
     return [{"id": r.id, "user_email": r.user_email, "action": r.action, "target": r.target, "details": r.details, "created_at": r.created_at.isoformat()} for r in rows]
+
+# Expanded control plane: /api/auth/control/*
+router.include_router(admin_control_router)
