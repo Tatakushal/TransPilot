@@ -14,31 +14,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(USER_KEY);
-      const token = localStorage.getItem(TOKEN_KEY);
-      if (raw && token) setUser(JSON.parse(raw) as User);
-    } catch {
-      localStorage.removeItem(USER_KEY); localStorage.removeItem(TOKEN_KEY);
-    } finally { setIsAuthReady(true); }
-
-    const handleUnauthorized = () => setUser(null);
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { setIsAuthReady(true); return; }
+    request("auth/me").then((me) => {
+      const nextUser = me as User;
+      localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
+      setUser(nextUser);
+    }).catch(() => {
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      setUser(null);
+    }).finally(() => setIsAuthReady(true));
+    const handleUnauthorized = () => { setUser(null); localStorage.removeItem(USER_KEY); localStorage.removeItem(TOKEN_KEY); };
     window.addEventListener("transpilot:unauthorized", handleUnauthorized);
     return () => window.removeEventListener("transpilot:unauthorized", handleUnauthorized);
   }, []);
 
   const login = async (email: string, password: string) => {
     const result = await request("auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
-    const nextUser: User = { id: result.user_id, name: email.split("@")[0], email, role: result.role as UserRole };
+    const nextUser: User = { id: result.user_id, name: result.name, email: result.email, role: result.role as UserRole };
     localStorage.setItem(TOKEN_KEY, result.access_token); localStorage.setItem(USER_KEY, JSON.stringify(nextUser)); setUser(nextUser);
   };
-
-  const register = async (name: string, email: string, password: string, role: Exclude<UserRole, "admin">) => {
-    await request("auth/register", { method: "POST", body: JSON.stringify({ name, email, password, role }) });
-    await login(email, password);
-  };
-
+  const register = async (name: string, email: string, password: string, role: Exclude<UserRole, "admin">) => { await request("auth/register", { method: "POST", body: JSON.stringify({ name, email, password, role }) }); await login(email, password); };
   const logout = () => { setUser(null); localStorage.removeItem(USER_KEY); localStorage.removeItem(TOKEN_KEY); };
-
   return <AuthContext.Provider value={{ user, isAuthReady, login, register, logout }}>{children}</AuthContext.Provider>;
 }
