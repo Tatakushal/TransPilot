@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { tripService, type Trip } from "@/services/tripService";
 import { getDrivers, type Driver } from "@/services/driverService";
-import { getVehicles, type Vehicle } from "@/services/vehicleService";
+import { getVehicles } from "@/services/vehicleService";
+import type { Vehicle } from "@/types/vehicles";
 
 export default function RecentTrips() {
   const navigate = useNavigate();
