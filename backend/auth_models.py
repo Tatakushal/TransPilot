@@ -22,3 +22,13 @@ class AuthTokenModel(Base):
     expires_at = Column(DateTime, nullable=False)
     used = Column(Boolean, default=False, nullable=False)
     used_at = Column(DateTime, nullable=True)
+
+class AuditLogModel(Base):
+    __tablename__ = "audit_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=True, index=True)
+    user_email = Column(String, nullable=False)
+    action = Column(String, nullable=False, index=True)
+    target = Column(String, nullable=True)
+    details = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
