@@ -7,6 +7,7 @@ from auth_models import UserAccountModel, AuthTokenModel, AuditLogModel
 from auth_security import hash_password, verify_password, create_token, token_hash
 from authorization import current_user
 from admin_api import router as admin_control_router
+from bootstrap_api import router as bootstrap_router
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 ALLOWED_ROLES = {"admin", "fleet-manager", "dispatcher", "safety-officer", "financial-analyst"}
@@ -56,26 +57,17 @@ def _audit(db: Session, actor, action: str, target: str | None = None, details: 
 @router.post("/register", response_model=MessageResponse, status_code=201)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     email = payload.email.lower()
-    if payload.role not in PUBLIC_ROLES:
-        raise HTTPException(400, "Invalid account role")
-    if db.query(UserAccountModel).filter(UserAccountModel.email == email).first():
-        raise HTTPException(409, "An account with this email already exists")
+    if payload.role not in PUBLIC_ROLES: raise HTTPException(400, "Invalid account role")
+    if db.query(UserAccountModel).filter(UserAccountModel.email == email).first(): raise HTTPException(409, "An account with this email already exists")
     user = UserAccountModel(name=payload.name.strip(), email=email, password_hash=hash_password(payload.password), role=payload.role, email_verified=True, is_active=True)
-    db.add(user)
-    db.commit()
-    return {"message": "Account created successfully. You can now sign in."}
+    db.add(user); db.commit(); return {"message": "Account created successfully. You can now sign in."}
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(UserAccountModel).filter(UserAccountModel.email == payload.email.lower()).first()
-    if not user or not user.is_active or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(401, "Invalid email or password")
-    if not user.email_verified:
-        raise HTTPException(403, "Email verification required")
-    raw = create_token()
-    db.add(AuthTokenModel(user_id=user.id, token_hash=token_hash(raw), token_type="access", expires_at=datetime.utcnow() + timedelta(hours=12)))
-    _audit(db, user, "login", "session", "Successful sign in")
-    db.commit()
+    if not user or not user.is_active or not verify_password(payload.password, user.password_hash): raise HTTPException(401, "Invalid email or password")
+    if not user.email_verified: raise HTTPException(403, "Email verification required")
+    raw = create_token(); db.add(AuthTokenModel(user_id=user.id, token_hash=token_hash(raw), token_type="access", expires_at=datetime.utcnow() + timedelta(hours=12))); _audit(db, user, "login", "session", "Successful sign in"); db.commit()
     return {"access_token": raw, "user_id": user.id, "role": user.role, "name": user.name, "email": user.email}
 
 @router.get("/me")
@@ -88,8 +80,7 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     if not row or row.expires_at < datetime.utcnow(): raise HTTPException(400, "Invalid or expired verification token")
     user = db.get(UserAccountModel, row.user_id)
     if not user: raise HTTPException(404, "Account not found")
-    user.email_verified = True; row.used = True; row.used_at = datetime.utcnow(); db.commit()
-    return {"message": "Email verified successfully"}
+    user.email_verified = True; row.used = True; row.used_at = datetime.utcnow(); db.commit(); return {"message": "Email verified successfully"}
 
 @router.post("/request-password-reset", response_model=MessageResponse)
 def request_password_reset(email: EmailStr, db: Session = Depends(get_db)):
@@ -108,13 +99,11 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     if not row or row.expires_at < datetime.utcnow(): raise HTTPException(400, "Invalid or expired reset token")
     user = db.get(UserAccountModel, row.user_id)
     if not user or not user.is_active: raise HTTPException(404, "Account not found")
-    user.password_hash = hash_password(payload.password); row.used = True; row.used_at = datetime.utcnow(); db.commit()
-    return {"message": "Password reset successfully"}
+    user.password_hash = hash_password(payload.password); row.used = True; row.used_at = datetime.utcnow(); db.commit(); return {"message": "Password reset successfully"}
 
 @router.delete("/account", response_model=MessageResponse)
 def delete_account(user=Depends(current_user), db: Session = Depends(get_db)):
-    user.is_active = False; db.query(AuthTokenModel).filter(AuthTokenModel.user_id == user.id).update({"used": True}); _audit(db, user, "account_deactivated", "account"); db.commit()
-    return {"message": "Account deactivated"}
+    user.is_active = False; db.query(AuthTokenModel).filter(AuthTokenModel.user_id == user.id).update({"used": True}); _audit(db, user, "account_deactivated", "account"); db.commit(); return {"message": "Account deactivated"}
 
 # Backwards-compatible admin endpoints retained for existing clients.
 @router.get("/admin/overview")
@@ -126,8 +115,7 @@ def admin_overview(user=Depends(current_user), db: Session = Depends(get_db)):
 @router.get("/admin/users")
 def admin_users(user=Depends(current_user), db: Session = Depends(get_db)):
     if user.role != "admin": raise HTTPException(403, "Admin access required")
-    rows = db.query(UserAccountModel).order_by(UserAccountModel.created_at.desc()).all()
-    return [{"id": r.id, "name": r.name, "email": r.email, "role": r.role, "is_active": r.is_active, "email_verified": r.email_verified, "created_at": r.created_at.isoformat()} for r in rows]
+    rows = db.query(UserAccountModel).order_by(UserAccountModel.created_at.desc()).all(); return [{"id": r.id, "name": r.name, "email": r.email, "role": r.role, "is_active": r.is_active, "email_verified": r.email_verified, "created_at": r.created_at.isoformat()} for r in rows]
 
 @router.post("/admin/users", status_code=201)
 def admin_create_user(payload: AdminUserCreate, user=Depends(current_user), db: Session = Depends(get_db)):
@@ -135,8 +123,7 @@ def admin_create_user(payload: AdminUserCreate, user=Depends(current_user), db: 
     if payload.role not in ALLOWED_ROLES: raise HTTPException(400, "Invalid role")
     email = payload.email.lower()
     if db.query(UserAccountModel).filter(UserAccountModel.email == email).first(): raise HTTPException(409, "Email already exists")
-    row = UserAccountModel(name=payload.name.strip(), email=email, password_hash=hash_password(payload.password), role=payload.role, email_verified=True, is_active=True)
-    db.add(row); db.flush(); _audit(db, user, "user_created", f"user:{row.id}", f"role={row.role}"); db.commit(); db.refresh(row)
+    row = UserAccountModel(name=payload.name.strip(), email=email, password_hash=hash_password(payload.password), role=payload.role, email_verified=True, is_active=True); db.add(row); db.flush(); _audit(db, user, "user_created", f"user:{row.id}", f"role={row.role}"); db.commit(); db.refresh(row)
     return {"id": row.id, "name": row.name, "email": row.email, "role": row.role, "is_active": row.is_active}
 
 @router.patch("/admin/users/{user_id}")
@@ -152,7 +139,7 @@ def admin_update_user(user_id: int, payload: AdminUserUpdate, user=Depends(curre
         if payload.role not in ALLOWED_ROLES: raise HTTPException(400, "Invalid role")
         row.role = payload.role
     if payload.is_active is not None: row.is_active = payload.is_active
-    db.query(AuthTokenModel).filter(AuthTokenModel.user_id == row.id).update({"used": True}) if not row.is_active else None
+    if not row.is_active: db.query(AuthTokenModel).filter(AuthTokenModel.user_id == row.id).update({"used": True})
     _audit(db, user, "user_updated", f"user:{row.id}", f"role={row.role},active={row.is_active}"); db.commit(); db.refresh(row)
     return {"id": row.id, "name": row.name, "email": row.email, "role": row.role, "is_active": row.is_active}
 
@@ -161,14 +148,12 @@ def admin_reset_password(user_id: int, payload: AdminPasswordUpdate, user=Depend
     if user.role != "admin": raise HTTPException(403, "Admin access required")
     row = db.get(UserAccountModel, user_id)
     if not row: raise HTTPException(404, "User not found")
-    row.password_hash = hash_password(payload.password); db.query(AuthTokenModel).filter(AuthTokenModel.user_id == row.id).update({"used": True}); _audit(db, user, "password_reset", f"user:{row.id}"); db.commit()
-    return {"message": "Password reset and existing sessions revoked"}
+    row.password_hash = hash_password(payload.password); db.query(AuthTokenModel).filter(AuthTokenModel.user_id == row.id).update({"used": True}); _audit(db, user, "password_reset", f"user:{row.id}"); db.commit(); return {"message": "Password reset and existing sessions revoked"}
 
 @router.get("/admin/audit-logs")
 def admin_audit_logs(user=Depends(current_user), db: Session = Depends(get_db)):
     if user.role != "admin": raise HTTPException(403, "Admin access required")
-    rows = db.query(AuditLogModel).order_by(AuditLogModel.created_at.desc()).limit(200).all()
-    return [{"id": r.id, "user_email": r.user_email, "action": r.action, "target": r.target, "details": r.details, "created_at": r.created_at.isoformat()} for r in rows]
+    rows = db.query(AuditLogModel).order_by(AuditLogModel.created_at.desc()).limit(200).all(); return [{"id": r.id, "user_email": r.user_email, "action": r.action, "target": r.target, "details": r.details, "created_at": r.created_at.isoformat()} for r in rows]
 
-# Expanded control plane: /api/auth/control/*
 router.include_router(admin_control_router)
+router.include_router(bootstrap_router)
