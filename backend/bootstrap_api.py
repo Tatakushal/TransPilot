@@ -49,9 +49,6 @@ def fresh_start(payload: FreshStartRequest, x_bootstrap_key: str | None = Header
     _check_bootstrap_key(x_bootstrap_key)
     if payload.confirmation != "START FRESH":
         raise HTTPException(400, 'Type "START FRESH" to confirm this destructive reset.')
-    if db.query(UserAccountModel).filter(UserAccountModel.role == "admin").first():
-        raise HTTPException(409, "An administrator already exists. Use the Admin Control Center for ongoing account management.")
-
     try:
         # There are no ORM foreign-key relationships between these records, so clear
         # dependent operational/auth records before their parent entities.
