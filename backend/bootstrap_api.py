@@ -17,6 +17,7 @@ class BootstrapAdminRequest(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
     password: str = Field(..., min_length=10, max_length=128)
+    bootstrap_key: str | None = Field(default=None, min_length=1, max_length=512)
 
 
 class FreshStartRequest(BootstrapAdminRequest):
@@ -61,7 +62,7 @@ def bootstrap_status():
 
 @router.post("/admin", status_code=201)
 def bootstrap_admin(payload: BootstrapAdminRequest, x_bootstrap_key: str | None = Header(default=None), db: Session = Depends(get_db)):
-    _check_bootstrap_key(x_bootstrap_key)
+    _check_bootstrap_key(x_bootstrap_key, payload.bootstrap_key)
     _ensure_first_run(db)
     email = payload.email.lower()
     if db.query(UserAccountModel).filter(UserAccountModel.email == email).first():
