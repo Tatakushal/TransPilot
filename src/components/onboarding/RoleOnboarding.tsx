@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, CircleHelp, ShieldCheck, Truck, Radio, ShieldAlert, WalletCards, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { UserRole } from "@/context/AuthContext";
@@ -64,7 +64,7 @@ export default function RoleOnboarding() {
     return localStorage.getItem(STORAGE_PREFIX + user.role) !== "true";
   });
 
-  if (!user || !open) return null;
+  useEffect(() => {\n    const reopen = () => setOpen(true);\n    window.addEventListener("transpilot:open-onboarding", reopen);\n    return () => window.removeEventListener("transpilot:open-onboarding", reopen);\n  }, []);\n\n  if (!user || !open) return null;
 
   const guide = guides[user.role];
   const Icon = guide.icon;
