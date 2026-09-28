@@ -64,7 +64,13 @@ export default function RoleOnboarding() {
     return localStorage.getItem(STORAGE_PREFIX + user.role) !== "true";
   });
 
-  useEffect(() => {\n    const reopen = () => setOpen(true);\n    window.addEventListener("transpilot:open-onboarding", reopen);\n    return () => window.removeEventListener("transpilot:open-onboarding", reopen);\n  }, []);\n\n  if (!user || !open) return null;
+  useEffect(() => {
+    const reopen = () => setOpen(true);
+    window.addEventListener("transpilot:open-onboarding", reopen);
+    return () => window.removeEventListener("transpilot:open-onboarding", reopen);
+  }, []);
+
+  if (!user || !open) return null;
 
   const guide = guides[user.role];
   const Icon = guide.icon;
