@@ -18,26 +18,6 @@ from authorization import current_user, require_permission
 import auth_models  # noqa: F401 - registers auth tables with SQLAlchemy metadata
 
 
-def seed_demo_vehicles() -> None:
-    """Optionally seed demo vehicles for local/demo environments only."""
-    if os.getenv("SEED_DEMO_DATA", "false").lower() not in {"1", "true", "yes"}:
-        return
-
-    db = SessionLocal()
-    try:
-        if db.query(VehicleModel).count() > 0:
-            return
-        db.add_all([
-            VehicleModel(registration_number="TS09AB1234", vehicle_name_model="Tata Prima 5530", type="Heavy Truck", max_load_capacity=15000, odometer=48250, acquisition_cost=2850000, status="Available"),
-            VehicleModel(registration_number="TS10CD5678", vehicle_name_model="Ashok Leyland 4825", type="Heavy Truck", max_load_capacity=12000, odometer=71320, acquisition_cost=2450000, status="On Trip"),
-            VehicleModel(registration_number="TS11EF9012", vehicle_name_model="Tata Ultra T.16", type="Medium Truck", max_load_capacity=8000, odometer=32100, acquisition_cost=1850000, status="Available"),
-            VehicleModel(registration_number="TS12GH3456", vehicle_name_model="Mahindra Blazo X", type="Heavy Truck", max_load_capacity=14000, odometer=95600, acquisition_cost=2650000, status="In Shop"),
-            VehicleModel(registration_number="TS13JK7890", vehicle_name_model="Eicher Pro 3015", type="Medium Truck", max_load_capacity=10000, odometer=55800, acquisition_cost=2100000, status="Available"),
-        ])
-        db.commit()
-    finally:
-        db.close()
-
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -45,7 +25,6 @@ async def lifespan(_: FastAPI):
     # cleanly even when a database connection is temporarily unavailable.
     try:
         Base.metadata.create_all(bind=engine)
-        seed_demo_vehicles()
     except Exception as exc:
         print(f"Database initialization warning: {exc}")
     yield
@@ -67,7 +46,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
 app.include_router(auth_router)
