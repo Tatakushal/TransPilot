@@ -23,8 +23,12 @@ class FreshStartRequest(BootstrapAdminRequest):
     confirmation: str = Field(..., min_length=11, max_length=32)
 
 
+def _configured_bootstrap_key() -> str:
+    return os.getenv("ADMIN_BOOTSTRAP_KEY", "").strip()
+
+
 def _check_bootstrap_key(x_bootstrap_key: str | None) -> None:
-    configured_key = os.getenv("ADMIN_BOOTSTRAP_KEY", "").strip()
+    configured_key = _configured_bootstrap_key()
     if not configured_key or not x_bootstrap_key or x_bootstrap_key != configured_key:
         raise HTTPException(403, "Bootstrap access denied")
 
@@ -33,6 +37,16 @@ def _ensure_first_run(db: Session) -> None:
     if db.query(UserAccountModel).filter(UserAccountModel.role == "admin").first():
         raise HTTPException(409, "Workspace is already initialized; no bootstrap reset is allowed")
 
+
+@router.get("/status")
+def bootstrap_status():
+    """Safe deployment diagnostic: never returns the secret itself."""
+    key = _configured_bootstrap_key()
+    return {
+        "configured": bool(key),
+        "length": len(key),
+        "vercel_environment": os.getenv("VERCEL_ENV", "unknown"),
+    }
 
 @router.post("/admin", status_code=201)
 def bootstrap_admin(payload: BootstrapAdminRequest, x_bootstrap_key: str | None = Header(default=None), db: Session = Depends(get_db)):
