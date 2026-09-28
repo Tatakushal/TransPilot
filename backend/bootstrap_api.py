@@ -23,8 +23,19 @@ class FreshStartRequest(BootstrapAdminRequest):
     confirmation: str = Field(..., min_length=11, max_length=32)
 
 
+def _normalize_bootstrap_key(value: str | None) -> str:
+    if not value:
+        return ""
+    normalized = value.strip()
+    # Vercel/dashboard entries are occasionally pasted with surrounding quotes.
+    # Treat only matching outer quotes as formatting, never as part of the secret.
+    if len(normalized) >= 2 and normalized[0] == normalized[-1] and normalized[0] in {"\"", "'"}:
+        normalized = normalized[1:-1].strip()
+    return normalized
+
+
 def _configured_bootstrap_key() -> str:
-    return os.getenv("ADMIN_BOOTSTRAP_KEY", "").strip()
+    return _normalize_bootstrap_key(os.getenv("ADMIN_BOOTSTRAP_KEY"))
 
 
 def _check_bootstrap_key(x_bootstrap_key: str | None) -> None:
