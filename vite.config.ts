@@ -8,6 +8,7 @@ import { join } from "node:path";
 const SPA_ROUTES = [
   "login",
   "register",
+  "admin-setup",
   "privacy",
   "dashboard",
   "vehicles",
@@ -16,6 +17,8 @@ const SPA_ROUTES = [
   "maintenance",
   "fuel",
   "reports",
+  "operations",
+  "admin",
   "settings",
 ];
 
