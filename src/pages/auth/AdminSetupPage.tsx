@@ -21,8 +21,8 @@ export default function AdminSetupPage() {
     try {
       const endpoint = freshStart ? "auth/bootstrap/fresh-start" : "auth/bootstrap/admin";
       const body = freshStart
-        ? { name: name.trim(), email: email.trim(), password, confirmation }
-        : { name: name.trim(), email: email.trim(), password };
+        ? { name: name.trim(), email: email.trim(), password, confirmation, bootstrap_key: bootstrapKey }
+        : { name: name.trim(), email: email.trim(), password, bootstrap_key: bootstrapKey };
       const result = await request(endpoint, { method: "POST", headers: { "X-Bootstrap-Key": bootstrapKey }, body: JSON.stringify(body) });
       setMessage(result.message || "Administrator created. Redirecting to sign in…");
       window.setTimeout(() => navigate("/login", { replace: true }), 1600);
