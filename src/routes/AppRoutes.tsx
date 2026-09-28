@@ -12,6 +12,7 @@ import SettingsPage from "@/pages/settings/SettingsPage";
 import AdminPage from "@/pages/admin/AdminPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
+import AdminSetupPage from "@/pages/auth/AdminSetupPage";
 import PrivacyPolicyPage from "@/pages/privacy/PrivacyPolicyPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 
@@ -20,6 +21,7 @@ export default function AppRoutes() {
     <Route path="/" element={<Navigate to="/login" replace />} />
     <Route path="/login" element={<LoginPage />} />
     <Route path="/register" element={<RegisterPage />} />
+    <Route path="/admin-setup" element={<AdminSetupPage />} />
     <Route path="/privacy" element={<PrivacyPolicyPage />} />
     <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
     <Route path="/operations" element={<ProtectedRoute><OperationsPage /></ProtectedRoute>} />
