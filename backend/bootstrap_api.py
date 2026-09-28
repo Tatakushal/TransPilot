@@ -39,9 +39,10 @@ def _configured_bootstrap_key() -> str:
     return _normalize_bootstrap_key(os.getenv("ADMIN_BOOTSTRAP_KEY"))
 
 
-def _check_bootstrap_key(x_bootstrap_key: str | None) -> None:
+def _check_bootstrap_key(x_bootstrap_key: str | None, body_bootstrap_key: str | None = None) -> None:
     configured_key = _configured_bootstrap_key()
-    if not configured_key or not x_bootstrap_key or x_bootstrap_key != configured_key:
+    supplied_key = x_bootstrap_key or body_bootstrap_key
+    if not configured_key or not supplied_key or _normalize_bootstrap_key(supplied_key) != configured_key:
         raise HTTPException(403, "Bootstrap access denied")
 
 
@@ -76,7 +77,7 @@ def bootstrap_admin(payload: BootstrapAdminRequest, x_bootstrap_key: str | None 
 @router.post("/fresh-start", status_code=201)
 def fresh_start(payload: FreshStartRequest, x_bootstrap_key: str | None = Header(default=None), db: Session = Depends(get_db)):
     """Destructive first-run reset: clears operational/auth data and creates the first administrator."""
-    _check_bootstrap_key(x_bootstrap_key)
+    _check_bootstrap_key(x_bootstrap_key, payload.bootstrap_key)
     _ensure_first_run(db)
     if payload.confirmation != "START FRESH":
         raise HTTPException(400, 'Type "START FRESH" to confirm this destructive reset.')
