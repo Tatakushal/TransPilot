@@ -6,7 +6,15 @@ An AI-powered Fleet Management System built using **React + TypeScript + Vite** 
 
 ## Deployment
 
-The repository includes a Vercel multi-service configuration for the Vite frontend and FastAPI backend. Production deployments should provide `DATABASE_URL` (PostgreSQL) and `RESEND_API_KEY` as Vercel environment variables.
+TransPilot uses Vercel's standard Vite frontend deployment with a FastAPI Python function at `api/index.py`. Vercel can serve the Vite app and `/api/*` FastAPI routes from the same project without the Services beta.
+
+Production environment variables:
+- `DATABASE_URL` — managed PostgreSQL connection string
+- `AUTH_SECRET` — long random authentication secret
+- `ADMIN_BOOTSTRAP_KEY` — one-time administrator initialization key
+- `CORS_ORIGINS` — only needed for direct cross-origin API access
+
+The production database must be PostgreSQL; SQLite is intended for local development only.
 
 ---
 
