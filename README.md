@@ -1,237 +1,193 @@
 # 🚛 TransPilot
 
-An AI-powered Fleet Management System built using **React + TypeScript + Vite** for the frontend and **FastAPI** for the backend.
+TransPilot is a production-oriented fleet management platform for vehicles, drivers, trips, fuel, maintenance, reporting and administration.
 
----
+## Stack
 
-## Deployment
+- **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS 4
+- **Backend:** FastAPI, SQLAlchemy 2, Pydantic 2
+- **Database:** SQLite for local development; PostgreSQL for production
+- **Authentication:** database-backed bearer sessions with PBKDF2 password hashing
+- **Deployment:** Vercel Vite frontend + FastAPI Python function at `api/index.py`
 
-TransPilot uses Vercel's standard Vite frontend deployment with a FastAPI Python function at `api/index.py`. Vercel can serve the Vite app and `/api/*` FastAPI routes from the same project without the Services beta.
+## Production deployment
 
-Production environment variables:
-- `DATABASE_URL` — managed PostgreSQL connection string
-- `AUTH_SECRET` — long random authentication secret
-- `ADMIN_BOOTSTRAP_KEY` — one-time administrator initialization key
-- `CORS_ORIGINS` — only needed for direct cross-origin API access
+TransPilot uses Vercel's standard Vite/Python deployment model. It does **not** depend on the Vercel Services beta.
 
-The production database must be PostgreSQL; SQLite is intended for local development only.
+Configure these Vercel environment variables:
 
----
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | Managed PostgreSQL connection string |
+| `ADMIN_BOOTSTRAP_KEY` | One-time first-administrator initialization key |
+| `AUTH_SECRET` | Long random application secret reserved for auth/integration features |
+| `CORS_ORIGINS` | Optional comma-separated origins when the API is called cross-origin |
 
-# Prerequisites
+Use a managed PostgreSQL provider in production. Do not use the local SQLite database for a serverless production deployment.
 
-Make sure the following are installed:
+After creating the first administrator through `/admin-setup`, rotate or remove `ADMIN_BOOTSTRAP_KEY`.
 
-- Node.js (v18 or later)
-- Python 3.11+
+## Local development
+
+### Prerequisites
+
+- Node.js 22
+- npm 10
+- Python 3.12
 - Git
 
----
-
-# Clone the Repository
+### 1. Install frontend dependencies
 
 ```bash
-git clone https://github.com/Tatakushal/TransPilot.git
-cd TransPilot
+npm ci
 ```
 
----
-
-# Frontend Setup
-
-Open a terminal in the project root.
-
-## Install dependencies
-
-```bash
-npm install
-```
-
-## Start the frontend
-
-```bash
-npm run dev
-```
-
-The frontend will start at:
-
-```
-http://localhost:5173
-```
-
----
-
-# Backend Setup
-
-Open **another terminal**.
-
-Navigate to the backend folder.
+### 2. Install backend dependencies
 
 ```bash
 cd backend
-```
-
-## Create a Virtual Environment (Recommended)
-
-### Windows
-
-```bash
 python -m venv .venv
 ```
 
-Activate it:
+Windows:
 
 ```bash
-.venv\Scripts\activate
+.venv\\Scripts\\activate
 ```
 
-### macOS / Linux
+macOS/Linux:
 
 ```bash
-python3 -m venv .venv
 source .venv/bin/activate
 ```
 
----
-
-## Upgrade pip
+Then:
 
 ```bash
-python -m pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
----
+### 3. Configure the local backend
 
-## Install Backend Dependencies
+Copy `backend/.env.example` to `backend/.env` and set the local values.
 
-```bash
-pip install fastapi uvicorn sqlalchemy pydantic python-multipart
+The default local database is:
+
+```
+sqlite:///./transitops.db
 ```
 
----
+For local frontend development against the FastAPI server, set:
 
-## Run the Backend
+```
+VITE_API_URL=http://127.0.0.1:8000/api
+```
+
+### 4. Start the backend
+
+From `backend/`:
 
 ```bash
 python -m uvicorn main:app --reload
 ```
 
-The backend will start at:
+API: `http://127.0.0.1:8000`
 
-```
-http://127.0.0.1:8000
-```
+Swagger: `http://127.0.0.1:8000/docs`
 
-Swagger API Documentation:
+### 5. Start the frontend
 
-```
-http://127.0.0.1:8000/docs
-```
-
----
-
-# Running the Project
-
-### Terminal 1 (Backend)
-
-```bash
-cd backend
-python -m uvicorn main:app --reload
-```
-
-### Terminal 2 (Frontend)
+From the repository root:
 
 ```bash
 npm run dev
 ```
 
-Open your browser:
+Frontend: `http://localhost:5173`
 
-```
-http://localhost:5173
-```
+## Authentication and administrator setup
 
----
+Normal registration creates one of the supported non-admin roles:
 
-# Project Structure
+- Fleet Manager
+- Dispatcher
+- Safety Officer
+- Financial Analyst
 
-```
-TransPilot
-│
-├── backend/
-│   ├── main.py
-│   ├── ...
-│
-├── public/
-│
-├── src/
-│   ├── components/
-│   ├── pages/
-│   ├── services/
-│   ├── router/
-│   └── ...
-│
-├── package.json
-├── vite.config.ts
-└── README.md
-```
+The first administrator is created through `/admin-setup` using the private `ADMIN_BOOTSTRAP_KEY`.
 
----
+The setup page has two modes:
 
-# Troubleshooting
+- **Fresh workspace:** only available before an administrator exists; creates the first administrator after clearing an uninitialized workspace.
+- **Keep existing data:** creates the first administrator without clearing existing operational data.
 
-### Backend won't start
+The destructive first-run operation is server-protected and cannot be used once an administrator already exists.
 
-Make sure you are inside the backend folder:
+## Main product areas
 
-```bash
-cd backend
-```
+- Dashboard with live fleet KPIs
+- Operations Center
+- Vehicles
+- Drivers
+- Trips and dispatch
+- Fuel
+- Maintenance
+- Reports and CSV export
+- Admin Control Center
+  - Users
+  - Roles and permissions
+  - Audit logs
+  - Active sessions
+  - Session revocation
+  - Password reset
+  - System health
+- Settings
+- Role-aware navigation and onboarding
+- Protected backend authorization
 
-If dependencies are missing:
-
-```bash
-pip install fastapi uvicorn sqlalchemy pydantic python-multipart
-```
-
----
-
-### Frontend won't start
-
-Install dependencies again:
-
-```bash
-npm install
-```
-
-Then run:
-
-```bash
-npm run dev
-```
-
----
-
-### API Connection Error
-
-Ensure the backend is running before starting the frontend.
-
-Backend:
-
-```
-http://127.0.0.1:8000
-```
+## Quality checks
 
 Frontend:
 
+```bash
+npm run lint
+npm run build
 ```
-http://localhost:5173
+
+Backend:
+
+```cd backend
+python -m pytest -q
 ```
 
----
+GitHub Actions runs both frontend and backend checks on pushes and pull requests to `main`.
 
-# Team
+## Repository structure
 
-**TransPilot**
+```
+TransPilot/
+├── api/
+│   └── index.py              # Vercel FastAPI entrypoint
+├── backend/
+│   ├── main.py
+│   ├── auth_api.py
+│   ├── admin_api.py
+│   ├── bootstrap_api.py
+│   ├── authorization.py
+│   ├── database.py
+│   └── tests/
+├── src/
+│   ├── components/
+│   ├── context/
+│   ├── pages/
+│   ├── routes/
+│   └── services/
+├── package.json
+├── vite.config.ts
+├── vercel.json
+└── requirements.txt
+```
 
-Developed as part of a Hackathon Project.
+## License
+
+Project-specific licensing can be added when the repository is ready for public distribution.
