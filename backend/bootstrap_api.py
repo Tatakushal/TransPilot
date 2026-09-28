@@ -29,11 +29,15 @@ def _check_bootstrap_key(x_bootstrap_key: str | None) -> None:
         raise HTTPException(403, "Bootstrap access denied")
 
 
+def _ensure_first_run(db: Session) -> None:
+    if db.query(UserAccountModel).filter(UserAccountModel.role == "admin").first():
+        raise HTTPException(409, "Workspace is already initialized; no bootstrap reset is allowed")
+
+
 @router.post("/admin", status_code=201)
 def bootstrap_admin(payload: BootstrapAdminRequest, x_bootstrap_key: str | None = Header(default=None), db: Session = Depends(get_db)):
     _check_bootstrap_key(x_bootstrap_key)
-    if db.query(UserAccountModel).filter(UserAccountModel.role == "admin").first():
-        raise HTTPException(409, "An administrator already exists")
+    _ensure_first_run(db)
     email = payload.email.lower()
     if db.query(UserAccountModel).filter(UserAccountModel.email == email).first():
         raise HTTPException(409, "An account with this email already exists")
@@ -47,11 +51,10 @@ def bootstrap_admin(payload: BootstrapAdminRequest, x_bootstrap_key: str | None 
 def fresh_start(payload: FreshStartRequest, x_bootstrap_key: str | None = Header(default=None), db: Session = Depends(get_db)):
     """Destructive first-run reset: clears operational/auth data and creates the first administrator."""
     _check_bootstrap_key(x_bootstrap_key)
+    _ensure_first_run(db)
     if payload.confirmation != "START FRESH":
         raise HTTPException(400, 'Type "START FRESH" to confirm this destructive reset.')
     try:
-        # There are no ORM foreign-key relationships between these records, so clear
-        # dependent operational/auth records before their parent entities.
         for model in (
             AuthTokenModel,
             AuditLogModel,
