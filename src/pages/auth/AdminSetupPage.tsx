@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { KeyRound, ShieldCheck, Database, AlertTriangle } from "lucide-react";
 import { request } from "@/services/api";
@@ -15,7 +15,7 @@ export default function AdminSetupPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function submit(event: React.FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     setError(""); setMessage(""); setLoading(true);
     try {
