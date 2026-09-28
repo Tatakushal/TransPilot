@@ -11,13 +11,12 @@ from bootstrap_api import router as bootstrap_router
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 ALLOWED_ROLES = {"admin", "fleet-manager", "dispatcher", "safety-officer", "financial-analyst"}
-PUBLIC_ROLES = ALLOWED_ROLES - {"admin"}
+PUBLIC_REGISTRATION_ROLE = "dispatcher"
 
 class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
-    role: str = Field(default="fleet-manager", min_length=3, max_length=40)
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -57,10 +56,19 @@ def _audit(db: Session, actor, action: str, target: str | None = None, details: 
 @router.post("/register", response_model=MessageResponse, status_code=201)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     email = payload.email.lower()
-    if payload.role not in PUBLIC_ROLES: raise HTTPException(400, "Invalid account role")
-    if db.query(UserAccountModel).filter(UserAccountModel.email == email).first(): raise HTTPException(409, "An account with this email already exists")
-    user = UserAccountModel(name=payload.name.strip(), email=email, password_hash=hash_password(payload.password), role=payload.role, email_verified=True, is_active=True)
-    db.add(user); db.commit(); return {"message": "Account created successfully. You can now sign in."}
+    if db.query(UserAccountModel).filter(UserAccountModel.email == email).first():
+        raise HTTPException(409, "An account with this email already exists")
+    user = UserAccountModel(
+        name=payload.name.strip(),
+        email=email,
+        password_hash=hash_password(payload.password),
+        role=PUBLIC_REGISTRATION_ROLE,
+        email_verified=True,
+        is_active=True,
+    )
+    db.add(user)
+    db.commit()
+    return {"message": "Account created successfully. Your initial role is Dispatcher. An administrator can change your role after sign in."}
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
